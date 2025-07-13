@@ -3,7 +3,7 @@
 </div>
 
 <div align="center">
-  <img src="https://img.shields.io/badge/version-4.0.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-5.0.0-blue" alt="version">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL3.0-green" alt="license"></a>
   <h4>
     <a href="README.md">🇨🇳 中文</a>
@@ -44,7 +44,7 @@ After the translation completes, two files will be generated in the same directo
 Create environment:
 
 ```bash
-uv venv --python 3.12
+uv venv --python 3.10
 uv sync
 ```
 
@@ -79,10 +79,13 @@ The Q&A engine supports SiliconFlow (cloud), Ollama (local), and any other imple
 1. Does it support image-based PDFs, such as scanned documents?  
    **Answer:** No. The tool relies on `pdf2zh` to detect text blocks. Replacing text in image-based PDFs will cause overlapping content.
 
-2. Some content is not translated when using large language models. Why?  
+2. When using a large language model (LLM) for translation, some content remains untranslated? 
    **Answer:** Small-parameter LLMs have weak instruction-following ability. If the model ignores translation instructions, this issue can occur. When translating locally with an LLM, please ensure the model has a sufficient parameter size—7 B or larger is recommended.
 
-If you have other questions, feel free to submit an issue or contact me on WeChat: zstar1003.
+3. Why is the content inside tables not translated?  
+   **Answer:** Currently, pdf2zh does not support table translation. If you need this feature, check the `dev` branch of this repository, where pdf2zh_next can handle tables. However, due to its slower speed, it has not been merged into the main branch yet.
+
+If you have other questions, feel free to submit an issue.
 
 ## 🛠️ Contributing
 

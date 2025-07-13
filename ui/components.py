@@ -1057,7 +1057,7 @@ class TranslationConfigDialog(QDialog):
                         "stream": False
                     }
                     print(f"测试Ollama QA API: {chat_url}")
-                    r = requests.post(chat_url, headers=headers, json=payload, timeout=8)
+                    r = requests.post(chat_url, headers=headers, json=payload, timeout=10)
                     ok = (r.status_code == 200)
                     msg = f"状态码: {r.status_code}" if not ok else ""
                 elif service in ("ollama", "自定义") and expect_model and not is_qa:
@@ -1068,20 +1068,21 @@ class TranslationConfigDialog(QDialog):
                         "stream": False
                     }
                     print(f"测试Ollama 翻译API: {gen_url}")
-                    r = requests.post(gen_url, headers=headers, json=payload, timeout=8)
+                    r = requests.post(gen_url, headers=headers, json=payload, timeout=10)
                     ok = (r.status_code == 200)
                     msg = f"状态码: {r.status_code}" if not ok else ""
                 elif service == "silicon" and expect_model:
                     # Silicon: POST /v1/chat/completions
                     sil_url = url.rstrip('/') + "/v1/chat/completions"
+                    # Silicon的高峰响应比较慢，设置为stream=True
                     payload = {
                         "model": expect_model,
                         "messages": [{"role": "user", "content": "ping"}],
                         "max_tokens": 1,
-                        "stream": False
+                        "stream": True
                     }
                     print(f"测试Silicon API: {sil_url}")
-                    r = requests.post(sil_url, headers=headers, json=payload, timeout=8)
+                    r = requests.post(sil_url, headers=headers, json=payload, timeout=10)
                     ok = (r.status_code == 200)
                     msg = f"状态码: {r.status_code}" if not ok else ""
                 elif service == "自定义" and is_qa:
@@ -1094,7 +1095,7 @@ class TranslationConfigDialog(QDialog):
                         "stream": False
                     }
                     print(f"测试自定义QA API: {custom_url}")
-                    r = requests.post(custom_url, headers=headers, json=payload, timeout=8)
+                    r = requests.post(custom_url, headers=headers, json=payload, timeout=10)
                     ok = (r.status_code == 200)
                     msg = f"状态码: {r.status_code}" if not ok else ""
                 else:
