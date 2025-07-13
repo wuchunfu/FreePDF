@@ -91,7 +91,7 @@ class MainWindow(QMainWindow):
         self.open_btn = QPushButton("打开PDF文件")
         self.open_btn.setStyleSheet("""
             QPushButton {
-                background-color: #007acc;
+                background-color: #005a9e;
                 color: white;
                 border: none;
                 padding: 8px 16px;
@@ -99,7 +99,7 @@ class MainWindow(QMainWindow):
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #005a9e;
+                background-color: #003e6b;
             }
         """)
         toolbar_layout.addWidget(self.open_btn)
@@ -108,7 +108,7 @@ class MainWindow(QMainWindow):
         self.translation_config_btn = QPushButton("翻译配置")
         self.translation_config_btn.setStyleSheet("""
             QPushButton {
-                background-color: #fd7e14;
+                background-color: #005a9e;
                 color: white;
                 border: none;
                 padding: 8px 16px;
@@ -116,7 +116,7 @@ class MainWindow(QMainWindow):
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #e8681c;
+                background-color: #003e6b;
             }
         """)
         toolbar_layout.addWidget(self.translation_config_btn)
@@ -125,7 +125,7 @@ class MainWindow(QMainWindow):
         self.config_btn = QPushButton("引擎配置")
         self.config_btn.setStyleSheet("""
             QPushButton {
-                background-color: #28a745;
+                background-color: #005a9e;
                 color: white;
                 border: none;
                 padding: 8px 16px;
@@ -133,7 +133,7 @@ class MainWindow(QMainWindow):
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #218838;
+                background-color: #003e6b;
             }
         """)
         toolbar_layout.addWidget(self.config_btn)
@@ -142,7 +142,7 @@ class MainWindow(QMainWindow):
         self.sync_btn = QPushButton("关闭滚动同步")
         self.sync_btn.setStyleSheet("""
             QPushButton {
-                background-color: #17a2b8;
+                background-color: #005a9e;
                 color: white;
                 border: none;
                 padding: 8px 16px;
@@ -150,12 +150,30 @@ class MainWindow(QMainWindow):
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #138496;
+                background-color: #003e6b;
             }
         """)
         toolbar_layout.addWidget(self.sync_btn)
         
         toolbar_layout.addStretch()
+        
+        # 批量翻译按钮
+        self.batch_translate_btn = QPushButton("批量翻译")
+        self.batch_translate_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ff8c00;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #e07b00;
+            }
+        """)
+        self.batch_translate_btn.clicked.connect(self.open_batch_translate)
+        toolbar_layout.addWidget(self.batch_translate_btn)
         
         # 关于软件按钮
         self.about_btn = QPushButton("关于软件")
@@ -495,6 +513,13 @@ class MainWindow(QMainWindow):
         """显示关于软件对话框"""
         dialog = AboutDialog(self)
         dialog.exec()
+        
+    @pyqtSlot()
+    def open_batch_translate(self):
+        """打开批量翻译对话框"""
+        from ui.batch_translation_dialog import BatchTranslationDialog
+        dialog = BatchTranslationDialog(self)
+        dialog.exec()
             
     @pyqtSlot()
     def toggle_qa_widget(self):
@@ -631,7 +656,7 @@ class MainWindow(QMainWindow):
                 
             # 优先尝试使用pymupdf（项目中已安装且支持页面分割）
             try:
-                import pymupdf   # pymupdf
+                import pymupdf  # pymupdf
                 print("使用pymupdf(pymupdf )提取PDF文本...")
                 doc = pymupdf .open(self.current_file)
                 pdf_page_count = len(doc)
@@ -674,7 +699,7 @@ class MainWindow(QMainWindow):
                 print(f"pymupdf处理失败: {str(e)}")
                 print("尝试其他方法")
                 
-            # 尝试使用pdfplumber（如果用户安装了）
+            # 尝试使用pdfplumber
             try:
                 import pdfplumber
                 print("使用pdfplumber提取PDF文本...")
@@ -749,11 +774,11 @@ class MainWindow(QMainWindow):
                 
             # 使用pdfminer-six作为备用方案，增强页面分割功能
             try:
-                from pdfminer.high_level import extract_text
-                from pdfminer.layout import LAParams
-                from pdfminer.high_level import extract_text_to_fp
-                from pdfminer.pdfpage import PDFPage
                 import io
+
+                from pdfminer.high_level import extract_text, extract_text_to_fp
+                from pdfminer.layout import LAParams
+                from pdfminer.pdfpage import PDFPage
                 
                 print("使用pdfminer-six提取PDF文本（备用方案）...")
                 
@@ -795,7 +820,7 @@ class MainWindow(QMainWindow):
                         print(f"成功使用pdfminer-six按页面提取PDF文本，总长度: {len(full_text)} 字符，共{len(text_content)}页")
                         return full_text
                     else:
-                        print(f"pdfminer-six页面提取不完整，回退到整体提取")
+                        print("pdfminer-six页面提取不完整，回退到整体提取")
                         
                 except Exception as e:
                     print(f"pdfminer-six按页面提取失败: {e}，尝试整体提取")
