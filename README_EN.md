@@ -22,17 +22,17 @@ A free PDF reader that translates PDF documents from multiple languages into Chi
 
 ## 📦 Installation
 
-- Windows:
+- windows：
 
-  - GitHub: https://github.com/zstar1003/FreePDF/releases/download/v4.0.0/FreePDF_v4.0.0_Setup.exe
+  - github：https://github.com/zstar1003/FreePDF/releases/download/v5.0.0/FreePDF_v5.0.0_Setup.exe
 
-  - Baidu Cloud: https://pan.baidu.com/s/117EZ07PgPAqbxf9JejdMsQ?pwd=8888 (Extraction code: 8888)
+  - 百度网盘：https://pan.baidu.com/s/1Qh8Sb5XYpJWdDHXVr0vOoA?pwd=8888 (Extraction code: 8888)
 
-- macOS (arm64):
+- mac(arm64)：
 
-  - GitHub: https://github.com/zstar1003/FreePDF/releases/download/v4.0.0/FreePDF_v4.0.0_arm64.dmg
+  - github：https://github.com/zstar1003/FreePDF/releases/download/v5.0.0/FreePDF_v5.0.0_arm64.dmg
 
-  - Baidu Cloud: https://pan.baidu.com/s/1chdZc-JTXgrIOK4i4ZRRGg?pwd=8888 (Extraction code: 8888)
+  - 百度网盘：https://pan.baidu.com/s/1Eqe1Q0_DqQ0u6_YQybD8AQ?pwd=8888 (Extraction code: 8888)
 
 After the translation completes, two files will be generated in the same directory:
 

@@ -26,15 +26,15 @@
 
 - windows：
 
-  - github：https://github.com/zstar1003/FreePDF/releases/download/v4.0.0/FreePDF_v4.0.0_Setup.exe
+  - github：https://github.com/zstar1003/FreePDF/releases/download/v5.0.0/FreePDF_v5.0.0_Setup.exe
 
-  - 百度网盘：https://pan.baidu.com/s/117EZ07PgPAqbxf9JejdMsQ?pwd=8888 提取码: 8888
+  - 百度网盘：https://pan.baidu.com/s/1Qh8Sb5XYpJWdDHXVr0vOoA?pwd=8888 提取码: 8888 
 
 - mac(arm64)：
 
-  - github：https://github.com/zstar1003/FreePDF/releases/download/v4.0.0/FreePDF_v4.0.0_arm64.dmg
+  - github：https://github.com/zstar1003/FreePDF/releases/download/v5.0.0/FreePDF_v5.0.0_arm64.dmg
 
-  - 百度网盘：https://pan.baidu.com/s/1chdZc-JTXgrIOK4i4ZRRGg?pwd=8888 提取码: 8888 
+  - 百度网盘：https://pan.baidu.com/s/1Eqe1Q0_DqQ0u6_YQybD8AQ?pwd=8888 提取码: 8888  
 
 翻译完的PDF文件，会在其对应目录下生成 `-dual.pdf`(双语对照文件) 和 `-mono.pdf`(中文翻译文件)
 

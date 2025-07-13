@@ -7,7 +7,7 @@
 
 # Program Information
 Name "FreePDF"
-OutFile "FreePDF_v4.0.0_Setup.exe"
+OutFile "FreePDF_v5.0.0_Setup.exe"
 InstallDir "$PROGRAMFILES64\FreePDF"
 InstallDirRegKey HKLM "Software\FreePDF" "InstallPath"
 RequestExecutionLevel admin
@@ -116,11 +116,11 @@ Function .onInit
     StrCmp $R1 "5.0.0" same_version different_version
     
     same_version:
-        MessageBox MB_OKCANCEL|MB_ICONQUESTION "FreePDF v4.0.0 is already installed.$\n$\nClick OK to reinstall or Cancel to exit." IDOK uninst
+        MessageBox MB_OKCANCEL|MB_ICONQUESTION "FreePDF v5.0.0 is already installed.$\n$\nClick OK to reinstall or Cancel to exit." IDOK uninst
         Abort
         
     different_version:
-        MessageBox MB_OKCANCEL|MB_ICONINFORMATION "FreePDF $R1 is installed.$\n$\nClick OK to upgrade to v4.0.0 or Cancel to exit." IDOK uninst
+        MessageBox MB_OKCANCEL|MB_ICONINFORMATION "FreePDF $R1 is installed.$\n$\nClick OK to upgrade to v5.0.0 or Cancel to exit." IDOK uninst
         Abort
     
     uninst:
