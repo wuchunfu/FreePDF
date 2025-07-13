@@ -19,7 +19,7 @@
 
 ## 🏗️ 效果演示
 
-[![FreePDF：颠覆科研人的文献阅读方式](https://i0.hdslb.com/bfs/archive/b46c5d599cb13b7aa125c536d52ee0c990e59ca7.jpg@672w_378h_1c.avif)](https://www.bilibili.com/video/BV11EgkziEFg)
+[![FreePDF：颠覆科研人的文献阅读方式](https://i0.hdslb.com/bfs/new_dyn/ee3f2cef036de77d80fe4518ef350f32472442675.jpg@428w_322h_1c.avif)](https://www.bilibili.com/video/BV11EgkziEFg)
 
 
 ## 📦 使用方式
