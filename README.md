@@ -56,7 +56,101 @@ python main.py
 
 ## 📥 配置说明
 
-支持四种可选翻译引擎，可通过`引擎配置`进行设置。
+### 配置文件结构与参数说明
+
+配置文件（pdf2zh_config.json）示例：
+
+```json
+{
+  "models": {
+    "doclayout_path": "./models/doclayout_yolo_docstructbench_imgsz1024.onnx"
+  },
+  "fonts": {
+    "zh": "./fonts/SourceHanSerifCN-Regular.ttf",
+    "ja": "./fonts/SourceHanSerifJP-Regular.ttf",
+    "ko": "./fonts/SourceHanSerifKR-Regular.ttf",
+    "zh-TW": "./fonts/SourceHanSerifTW-Regular.ttf",
+    "default": "./fonts/GoNotoKurrent-Regular.ttf"
+  },
+  "translation": {
+    "service": "bing", // 翻译引擎，可选：bing、google、silicon、ollama、自定义
+    "lang_in": "en",   // 源语言，可选：en、zh、ja、ko、zh-TW
+    "lang_out": "zh",  // 目标语言，同上
+    "envs": {
+      // bing/google无需配置
+      // silicon示例：
+      //   "SILICON_API_KEY": "你的API Key",
+      //   "SILICON_MODEL": "Qwen/Qwen2.5-7B-Instruct"
+      // ollama示例：
+      //   "OLLAMA_HOST": "http://127.0.0.1:11434",
+      //   "OLLAMA_MODEL": "deepseek-r1:1.5b"
+      // 自定义示例：
+      //   "CUSTOM_HOST": "https://api.xxx.com",
+      //   "CUSTOM_KEY": "你的Key",
+      //   "CUSTOM_MODEL": "模型名"
+    }
+  },
+  "qa_engine": {
+    "service": "关闭", // 问答引擎，可选：关闭、silicon、ollama、自定义
+    "envs": {
+      // 配置方式同上
+    }
+  },
+  "qa_settings": {
+    "pages": "", // 限定问答分析的PDF页面范围，格式如"1-5,8,10-15"，留空为全部页面
+    "system_prompt": "你是一个专业的PDF文档分析助手。用户上传了一个PDF文档，你需要基于文档内容回答用户的问题。\n\nPDF文档内容如下：\n{pdf_content}\n\n请注意：\n1. 请仅基于上述PDF文档内容回答问题\n2. 如果问题与文档内容无关，请明确说明\n3. 回答要准确、详细，并引用相关页面信息\n4. 使用中文回答\n5. 请使用纯文本回答，不要使用任何markdown格式（如 **、##、*、- 等符号），直接用文字表达重点"
+  },
+  "translation_enabled": true, // 是否启用翻译
+  "NOTO_FONT_PATH": "./fonts/SourceHanSerifCN-Regular.ttf", // 全局字体路径（
+  "pages": "" // 全局页面范围
+}
+```
+
+#### 字段说明
+- `models.doclayout_path`：DocLayout-YOLO ONNX模型路径。
+- `fonts`：各语言PDF渲染字体路径。
+- `translation.service`：翻译引擎，支持bing、google、silicon、ollama、自定义。
+- `translation.lang_in`/`lang_out`：源/目标语言，支持en（英文）、zh（中文）、ja（日语）、ko（韩语）、zh-TW（繁体中文）。
+- `translation.envs`：不同翻译引擎的API参数，配置方式与下方`qa_engine.envs`完全一致，详见下方典型配置示例。
+- `qa_engine.service`：问答引擎，支持关闭、silicon、ollama、自定义。
+- `qa_engine.envs`：不同问答引擎的API参数，配置方式与上方`translation.envs`完全一致，详见下方典型配置示例。
+- `qa_settings.pages`：问答时分析的PDF页面范围，格式如"1-5,8,10-15"。
+- `qa_settings.system_prompt`：问答系统提示词，{pdf_content}占位符表示具体的文档内容。
+- `translation_enabled`：是否启用翻译（true/false）。
+- `NOTO_FONT_PATH`：全局字体路径。
+- `pages`：全局页面范围。
+
+#### 典型配置示例
+- **硅基流动翻译/问答**：
+  ```json
+  "service": "silicon",
+  "envs": {
+    "SILICON_API_KEY": "你的API Key",
+    "SILICON_MODEL": "Qwen/Qwen2.5-7B-Instruct"
+  }
+  ```
+- **Ollama本地大模型**：
+  ```json
+  "service": "ollama",
+  "envs": {
+    "OLLAMA_HOST": "http://127.0.0.1:11434",
+    "OLLAMA_MODEL": "deepseek-r1:1.5b"
+  }
+  ```
+- **自定义OpenAI兼容API**：
+  ```json
+  "service": "自定义",
+  "envs": {
+    "CUSTOM_HOST": "https://api.xxx.com",
+    "CUSTOM_KEY": "你的Key",
+    "CUSTOM_MODEL": "模型名"
+  }
+  ```
+
+> 无论是翻译还是问答，envs字段的填写方式完全一致，仅需根据所选引擎填写对应参数。
+> 配置文件建议用记事本/VSCode等编辑，注意JSON格式不能有注释，所有注释仅供参考。
+
+支持四种可选翻译引擎：
 
 - 必应翻译(默认)  
   
@@ -82,17 +176,17 @@ python main.py
 
 ## ❓ 常见问题
 
-1. 支持图片型PDF吗，比如扫描件？
-
+1. 支持图片型PDF吗，比如扫描件？  
   **回答：** 不支持，本质上是借助`pdf2zh`检测文本块内容，再进行翻译替换，图片型无法直接替换，会导致内容重合叠加。
 
-2. 使用大模型翻译时，有些内容没有翻译？
-
+2. 使用大模型翻译时，有些内容没有翻译？ 
   **回答：** 低参数量的大模型本身的指令遵循能力很差，让它翻译，它可能不会完全听话，就会造成此现象。因此，本地用大模型翻译，必须保证大模型本身具备一定参数规模，建议7B以上。
 
-3. 表格中的内容没有翻译？
-
+3. 表格中的内容没有翻译？ 
   **回答：** pdf2zh暂不支持表格内容翻译，如需翻译表格，可查看本仓库的`dev`分支，采用`pdf2zh_next`进行翻译，但由于速度较慢，未合并进主分支。
+
+4. 软件内的引擎配置文件无法保存？ 
+  **回答：** 部分机型默认缩放下，无法显示保存的配置按钮，可修改屏幕分辨率或缩放比重试，也可参照上面的说明，直接编辑软件安装路径下的配置文件`pdf2zh_config.json`。
 
 如有其它问题，欢迎提交 issue 或 直接联系我的微信 zstar1003 反馈问题。
 
