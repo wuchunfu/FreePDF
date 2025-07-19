@@ -414,7 +414,7 @@ class TranslationConfigDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("引擎配置")
-        self.setFixedSize(650, 900)
+        self.setFixedSize(1000, 600)  # 改为更宽但更矮的尺寸
         self.setModal(True)
 
         # 加载当前配置
@@ -479,6 +479,18 @@ class TranslationConfigDialog(QDialog):
         """)
         main_layout.addWidget(title_label)
 
+        # 创建左右布局的主容器
+        content_layout = QHBoxLayout()
+        content_layout.setSpacing(20)
+
+        # 左侧容器 - 翻译引擎相关
+        left_container = QWidget()
+        left_container.setMinimumWidth(450)  # 设置最小宽度
+        left_container.setMaximumWidth(500)  # 设置最大宽度
+        left_layout = QVBoxLayout(left_container)
+        left_layout.setContentsMargins(0, 0, 10, 0)  # 右边距为10，与右侧容器分开
+        left_layout.setSpacing(15)
+
         # 翻译引擎配置组
         basic_group = QGroupBox("翻译引擎配置")
         basic_layout = QFormLayout(basic_group)
@@ -518,7 +530,7 @@ class TranslationConfigDialog(QDialog):
         self.lang_out_combo.addItems(["中文", "英文", "日语", "韩语", "繁体中文"])
         basic_layout.addRow("目标语言:", self.lang_out_combo)
 
-        main_layout.addWidget(basic_group)
+        left_layout.addWidget(basic_group)
 
         # 参数配置组
         self.env_group = QGroupBox("翻译引擎参数")
@@ -529,7 +541,15 @@ class TranslationConfigDialog(QDialog):
 
         # 环境变量输入框会根据服务类型动态创建
 
-        main_layout.addWidget(self.env_group)
+        left_layout.addWidget(self.env_group)
+
+        # 右侧容器 - 问答引擎相关
+        right_container = QWidget()
+        right_container.setMinimumWidth(450)  # 设置最小宽度
+        right_container.setMaximumWidth(500)  # 设置最大宽度
+        right_layout = QVBoxLayout(right_container)
+        right_layout.setContentsMargins(10, 0, 0, 0)  # 左边距为10，与左侧容器分开
+        right_layout.setSpacing(15)
 
         # 问答引擎配置组
         qa_group = QGroupBox("问答引擎配置")
@@ -544,7 +564,7 @@ class TranslationConfigDialog(QDialog):
         self.qa_service_combo.currentTextChanged.connect(self.on_qa_service_changed)
         qa_layout.addRow("问答引擎:", self.qa_service_combo)
 
-        main_layout.addWidget(qa_group)
+        right_layout.addWidget(qa_group)
 
         # 问答引擎参数配置组
         self.qa_env_group = QGroupBox("问答引擎参数")
@@ -553,13 +573,25 @@ class TranslationConfigDialog(QDialog):
         self.qa_env_layout.setContentsMargins(15, 25, 15, 25)
         self.qa_env_layout.setVerticalSpacing(15)
 
-        main_layout.addWidget(self.qa_env_group)
+        right_layout.addWidget(self.qa_env_group)
 
-        # 添加弹性空间
-        spacer = QSpacerItem(
+        # 添加弹性空间到左右容器
+        left_spacer = QSpacerItem(
             20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
         )
-        main_layout.addItem(spacer)
+        left_layout.addItem(left_spacer)
+
+        right_spacer = QSpacerItem(
+            20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
+        )
+        right_layout.addItem(right_spacer)
+
+        # 将左右容器添加到内容布局，设置相等的拉伸因子
+        content_layout.addWidget(left_container, 1)  # 拉伸因子为1
+        content_layout.addWidget(right_container, 1)  # 拉伸因子为1
+
+        # 将内容布局添加到主布局
+        main_layout.addLayout(content_layout)
 
         # 按钮布局
         button_layout = QHBoxLayout()
