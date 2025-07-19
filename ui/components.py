@@ -1470,117 +1470,6 @@ PDF文档内容如下：
             print(f"检查截断信息时出错: {e}")
             # 静默失败，不影响正常问答流程
 
-    def on_response_chunk(self, chunk):
-        """处理AI回答片段"""
-        self.current_response += chunk
-
-        # 实时更新AI回答显示
-        timestamp = __import__("datetime").datetime.now().strftime("%H:%M:%S")
-
-        # 如果是第一个chunk，添加AI消息头
-        if len(self.current_response) == len(chunk):
-            html = f"""<div style="margin-bottom: 15px;" id="current-ai-response">
-                <div style="color: #28a745; font-weight: bold; margin-bottom: 5px;">
-                    🤖 AI助手 [{timestamp}]
-                </div>
-                <div style="background-color: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #28a745;">
-                    {self.current_response}
-                </div>
-            </div>"""
-            self.chat_display.insertHtml(html)
-        else:
-            # 更新现有的AI回答内容
-            cursor = self.chat_display.textCursor()
-            cursor.movePosition(cursor.MoveOperation.End)
-
-            # 查找并更新最后一个AI回答
-            content = self.chat_display.toHtml()
-            if "current-ai-response" in content:
-                # 简单替换最后的回答内容
-                updated_html = f"""<div style="margin-bottom: 15px;" id="current-ai-response">
-                    <div style="color: #28a745; font-weight: bold; margin-bottom: 5px;">
-                        🤖 AI助手 [{timestamp}] (思考中...)
-                    </div>
-                    <div style="background-color: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #28a745;">
-                        {self.current_response}
-                    </div>
-                </div>"""
-
-                # 重新设置内容（简化处理）
-                lines = content.split("\n")
-                for i, line in enumerate(lines):
-                    if 'id="current-ai-response"' in line:
-                        # 找到开始位置，替换到对应的结束div
-                        start_idx = i
-                        div_count = 0
-                        end_idx = start_idx
-                        for j in range(start_idx, len(lines)):
-                            if "<div" in lines[j]:
-                                div_count += 1
-                            if "</div>" in lines[j]:
-                                div_count -= 1
-                                if div_count == 0:
-                                    end_idx = j
-                                    break
-
-                        # 替换内容
-                        new_lines = (
-                            lines[:start_idx] + [updated_html] + lines[end_idx + 1 :]
-                        )
-                        new_content = "\n".join(new_lines)
-
-                        # 保存当前滚动位置
-                        scrollbar = self.chat_display.verticalScrollBar()
-                        current_pos = scrollbar.value()
-                        max_pos = scrollbar.maximum()
-                        at_bottom = current_pos >= max_pos - 10
-
-                        self.chat_display.setHtml(new_content)
-
-                        # 如果之前在底部，保持在底部
-                        if at_bottom:
-                            scrollbar.setValue(scrollbar.maximum())
-                        else:
-                            scrollbar.setValue(current_pos)
-                        break
-
-        # 滚动到底部
-        cursor = self.chat_display.textCursor()
-        cursor.movePosition(cursor.MoveOperation.End)
-        self.chat_display.setTextCursor(cursor)
-
-    def on_response_completed(self):
-        """AI回答完成"""
-        # 保存到对话历史
-        self.chat_history.append(
-            {
-                "question": self.question_input.toPlainText().strip()
-                if hasattr(self, "_last_question")
-                else "",
-                "answer": self.current_response,
-            }
-        )
-
-        # 恢复发送按钮
-        self.send_btn.setEnabled(True)
-        self.send_btn.setText("发送问题")
-        self.status_label.setText("回答完成")
-
-        # 移除临时ID标记
-        content = self.chat_display.toHtml()
-        content = content.replace('id="current-ai-response"', "")
-        content = content.replace("(思考中...)", "")
-        self.chat_display.setHtml(content)
-
-    def on_response_failed(self, error_message):
-        """AI回答失败"""
-        self.add_message("系统", f"回答失败: {error_message}")
-
-        # 恢复发送按钮
-        self.send_btn.setEnabled(True)
-        self.send_btn.setText("发送问题")
-        self.status_label.setText(f"回答失败: {error_message}")
-
     def send_question(self):
         """发送问题"""
         question = self.question_input.toPlainText().strip()
@@ -1855,27 +1744,103 @@ class EmbeddedQAWidget(QWidget):
 
         return text
 
+    def _convert_latex_to_html(self, latex_text):
+        """将LaTeX数学表达式转换为HTML"""
+        import re
+
+        # 清理空格
+        latex_text = latex_text.strip()
+
+        # 先处理复杂结构（分数、根号），避免递归
+        # 处理分数 \frac{分子}{分母}
+        while r"\frac{" in latex_text:
+            latex_text = re.sub(
+                r"\\frac{([^{}]*(?:{[^{}]*}[^{}]*)*)}{([^{}]*(?:{[^{}]*}[^{}]*)*)}",
+                r'<span style="display: inline-block; text-align: center; vertical-align: middle;"><span style="display: block; border-bottom: 1px solid; padding-bottom: 2px;">\1</span><span style="display: block; padding-top: 2px;">\2</span></span>',
+                latex_text,
+                count=1,
+            )
+
+        # 处理平方根 \sqrt{...}
+        while r"\sqrt{" in latex_text:
+            latex_text = re.sub(
+                r"\\sqrt{([^{}]*(?:{[^{}]*}[^{}]*)*)}",
+                r'√<span style="text-decoration: overline;">\1</span>',
+                latex_text,
+                count=1,
+            )
+
+        # 处理上标 ^{...} 和 ^x
+        latex_text = re.sub(r"\^{([^}]+)}", r"<sup>\1</sup>", latex_text)
+        latex_text = re.sub(r"\^([a-zA-Z0-9])", r"<sup>\1</sup>", latex_text)
+
+        # 处理下标 _{...} 和 _x
+        latex_text = re.sub(r"_{([^}]+)}", r"<sub>\1</sub>", latex_text)
+        latex_text = re.sub(r"_([a-zA-Z0-9])", r"<sub>\1</sub>", latex_text)
+
+        # 处理积分 \int
+        latex_text = re.sub(r"\\int", "∫", latex_text)
+
+        # 处理求和 \sum
+        latex_text = re.sub(r"\\sum", "∑", latex_text)
+
+        # 处理极限符号
+        latex_text = re.sub(r"\\infty", "∞", latex_text)
+        latex_text = re.sub(r"\\pi", "π", latex_text)
+
+        # 处理希腊字母
+        greek_letters = {
+            r"\\alpha": "α",
+            r"\\beta": "β",
+            r"\\gamma": "γ",
+            r"\\delta": "δ",
+            r"\\epsilon": "ε",
+            r"\\theta": "θ",
+            r"\\lambda": "λ",
+            r"\\mu": "μ",
+            r"\\sigma": "σ",
+            r"\\phi": "φ",
+            r"\\omega": "ω",
+        }
+        for latex, unicode_char in greek_letters.items():
+            latex_text = re.sub(latex, unicode_char, latex_text)
+
+        # 处理运算符
+        latex_text = re.sub(r"\\pm", "±", latex_text)
+        latex_text = re.sub(r"\\times", "×", latex_text)
+        latex_text = re.sub(r"\\div", "÷", latex_text)
+        latex_text = re.sub(r"\\neq", "≠", latex_text)
+        latex_text = re.sub(r"\\leq", "≤", latex_text)
+        latex_text = re.sub(r"\\geq", "≥", latex_text)
+
+        # 处理积分上下限 _{下限}^{上限}
+        latex_text = re.sub(
+            r"∫_{([^}]+)}\^{([^}]+)}", r"∫<sub>\1</sub><sup>\2</sup>", latex_text
+        )
+
+        return latex_text
+
     def _postprocess_math(self, html):
-        """后处理数学公式，添加样式"""
+        """后处理数学公式，添加样式并转换LaTeX"""
         import re
 
         # 处理行内数学公式
+        def process_inline_math(match):
+            latex_content = match.group(1)
+            html_content = self._convert_latex_to_html(latex_content)
+            return f"<span style=\"font-family: 'Times New Roman', serif; font-style: italic; color: #d63384; background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-weight: bold;\">{html_content}</span>"
+
         inline_pattern = r'<span class="math-inline">(.*?)</span>'
-        html = re.sub(
-            inline_pattern,
-            r'<span style="font-family: \'Times New Roman\', serif; font-style: italic; color: #d63384; background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-weight: bold;">\1</span>',
-            html,
-            flags=re.DOTALL,
-        )
+        html = re.sub(inline_pattern, process_inline_math, html, flags=re.DOTALL)
 
         # 处理块级数学公式
+        def process_block_math(match):
+            latex_content = match.group(1)
+            html_content = self._convert_latex_to_html(latex_content)
+            return f"<div style=\"text-align: center; margin: 16px 0; padding: 12px; background-color: #f8f9fa; border-radius: 6px; font-family: 'Times New Roman', serif; font-size: 18px; color: #d63384; font-weight: bold; border: 2px solid #e9ecef;\">{html_content}</div>"
+
         block_pattern = r'<div class="math-block">(.*?)</div>'
-        html = re.sub(
-            block_pattern,
-            r'<div style="text-align: center; margin: 16px 0; padding: 12px; background-color: #f8f9fa; border-radius: 6px; font-family: \'Times New Roman\', serif; font-size: 18px; color: #d63384; font-weight: bold; border: 2px solid #e9ecef;">\1</div>',
-            html,
-            flags=re.DOTALL,
-        )
+        html = re.sub(block_pattern, process_block_math, html, flags=re.DOTALL)
 
         return html
 
@@ -1935,11 +1900,7 @@ class EmbeddedQAWidget(QWidget):
                 html,
             )
 
-            styled_html = f"""
-            <div style="font-family: 'Microsoft YaHei', 'Segoe UI', sans-serif; line-height: 1.6; color: #333;">
-                {html}
-            </div>
-            """
+            styled_html = f"<div style=\"font-family: 'Microsoft YaHei', 'Segoe UI', sans-serif; line-height: 1.6; color: #333;\">{html}</div>"
             return styled_html
         except Exception as e:
             print(f"Markdown渲染失败: {e}")
@@ -2272,35 +2233,17 @@ class EmbeddedQAWidget(QWidget):
         # 构建完整的消息HTML（去除背景色）
         # 如果不是第一条消息，添加换行
         if current_html.strip() and "智能问答面板" not in current_html:
-            styled_message_html = f"""
-            <br>
-            <div style="margin-bottom: 20px; border-left: 4px solid {color}; padding-left: 15px;">
-                <div style="color: {color}; font-weight: bold; margin-bottom: 8px; font-size: 14px;">
-                    {sender} [{timestamp}]
-                </div>
-                <div style="line-height: 1.6;">
-                    {message_html}
-                </div>
-            </div>
-            """
+            styled_message_html = f'<br><div style="margin-bottom: 20px; border-left: 4px solid {color}; padding-left: 15px;"><div style="color: {color}; font-weight: bold; margin-bottom: 8px; font-size: 14px;">{sender} [{timestamp}]</div><div style="line-height: 1.6;">{message_html}</div></div>'
         else:
-            styled_message_html = f"""
-            <div style="margin-bottom: 20px; border-left: 4px solid {color}; padding-left: 15px;">
-                <div style="color: {color}; font-weight: bold; margin-bottom: 8px; font-size: 14px;">
-                    {sender} [{timestamp}]
-                </div>
-                <div style="line-height: 1.6;">
-                    {message_html}
-                </div>
-            </div>
-            """
+            styled_message_html = f'<div style="margin-bottom: 20px; border-left: 4px solid {color}; padding-left: 15px;"><div style="color: {color}; font-weight: bold; margin-bottom: 8px; font-size: 14px;">{sender} [{timestamp}]</div><div style="line-height: 1.6;">{message_html}</div></div>'
 
         # 如果是第一条消息，直接设置HTML
         if not current_html.strip() or "智能问答面板" in current_html:
             self.chat_display.setHtml(styled_message_html)
         else:
-            # 追加到现有内容
-            self.chat_display.insertHtml(styled_message_html)
+            # 追加到现有内容 - 使用setHtml确保正确的顺序
+            full_html = current_html + styled_message_html
+            self.chat_display.setHtml(full_html)
 
         # 确保滚动到底部
         cursor = self.chat_display.textCursor()
@@ -2397,30 +2340,47 @@ PDF文档内容如下：
         """处理AI回答片段"""
         self.current_response += chunk
 
-        # 简单的流式显示：每次都重新显示完整内容
+        # 流式显示：使用HTML格式保持一致性
         if len(self.current_response) == len(chunk):
             # 第一个chunk，添加AI消息头
             timestamp = __import__("datetime").datetime.now().strftime("%H:%M:%S")
 
-            # 记录开始位置
-            self._ai_start_position = len(self.chat_display.toPlainText())
+            # 记录开始位置（基于当前HTML内容）
+            current_html = self.chat_display.toHtml()
+            self._ai_start_html_length = len(current_html)
 
-            # 添加AI消息头
-            ai_header = f"\n\nAI助手 [{timestamp}]\n"
-            self.chat_display.append(ai_header)
+            # 创建AI消息头的HTML
+            ai_header_html = f'<br><div style="margin-bottom: 20px; border-left: 4px solid #28a745; padding-left: 15px;"><div style="color: #28a745; font-weight: bold; margin-bottom: 8px; font-size: 14px;">AI助手 [{timestamp}]</div><div style="line-height: 1.6; font-family: \'Microsoft YaHei\', \'Segoe UI\', sans-serif; white-space: pre-wrap;">{chunk}</div></div>'
 
-            # 添加第一个chunk
-            cursor = self.chat_display.textCursor()
-            cursor.movePosition(cursor.MoveOperation.End)
-            cursor.insertText(chunk)
+            # 添加到现有HTML
+            full_html = current_html + ai_header_html
+            self.chat_display.setHtml(full_html)
         else:
-            # 后续chunk，直接追加
-            cursor = self.chat_display.textCursor()
-            cursor.movePosition(cursor.MoveOperation.End)
-            cursor.insertText(chunk)
+            # 后续chunk，更新最后的AI回答内容
+            current_html = self.chat_display.toHtml()
 
-        # 自动滚动到底部
+            # 找到最后一个AI回答的内容区域并更新
+            # 简单方法：重新构建最后的AI消息
+            if hasattr(self, "_ai_start_html_length"):
+                before_ai_html = current_html[: self._ai_start_html_length]
+                timestamp = __import__("datetime").datetime.now().strftime("%H:%M:%S")
+
+                updated_ai_html = f'<br><div style="margin-bottom: 20px; border-left: 4px solid #28a745; padding-left: 15px;"><div style="color: #28a745; font-weight: bold; margin-bottom: 8px; font-size: 14px;">AI助手 [{timestamp}]</div><div style="line-height: 1.6; font-family: \'Microsoft YaHei\', \'Segoe UI\', sans-serif; white-space: pre-wrap;">{self.current_response}</div></div>'
+
+                full_html = before_ai_html + updated_ai_html
+                self.chat_display.setHtml(full_html)
+
+        # 强制滚动到底部
         self.chat_display.ensureCursorVisible()
+
+        # 额外的滚动确保
+        scrollbar = self.chat_display.verticalScrollBar()
+        scrollbar.setValue(scrollbar.maximum())
+
+        # 移动光标到末尾并确保可见
+        cursor = self.chat_display.textCursor()
+        cursor.movePosition(cursor.MoveOperation.End)
+        self.chat_display.setTextCursor(cursor)
 
     def on_response_completed(self):
         """AI回答完成"""
@@ -2432,31 +2392,18 @@ PDF文档内容如下：
             }
         )
 
-        # 简化方案：获取流式输出前的内容，然后添加完整的AI回答
-        if hasattr(self, "_ai_start_position"):
-            # 获取流式输出开始前的所有内容
-            current_text = self.chat_display.toPlainText()
-            before_ai_text = current_text[: self._ai_start_position]
-
-            # 将之前的纯文本内容转换为HTML
-            before_ai_html = before_ai_text.replace("\n", "<br>")
+        # 替换流式输出的临时内容为完整的Markdown渲染
+        if hasattr(self, "_ai_start_html_length"):
+            # 获取流式输出开始前的HTML内容
+            current_html = self.chat_display.toHtml()
+            before_ai_html = current_html[: self._ai_start_html_length]
 
             # 渲染AI回答为完整的Markdown
             timestamp = __import__("datetime").datetime.now().strftime("%H:%M:%S")
             response_html = self._render_markdown_to_html(self.current_response)
 
-            # 构建完整的AI回答HTML
-            ai_message_html = f"""
-            <br>
-            <div style="margin-bottom: 20px; border-left: 4px solid #28a745; padding-left: 15px;">
-                <div style="color: #28a745; font-weight: bold; margin-bottom: 8px; font-size: 14px;">
-                    AI助手 [{timestamp}]
-                </div>
-                <div style="line-height: 1.6;">
-                    {response_html}
-                </div>
-            </div>
-            """
+            # 构建完整的AI回答HTML（与add_message保持一致）
+            ai_message_html = f'<br><div style="margin-bottom: 20px; border-left: 4px solid #28a745; padding-left: 15px;"><div style="color: #28a745; font-weight: bold; margin-bottom: 8px; font-size: 14px;">AI助手 [{timestamp}]</div><div style="line-height: 1.6;">{response_html}</div></div>'
 
             # 重新设置完整内容
             full_html = before_ai_html + ai_message_html
@@ -2469,8 +2416,22 @@ PDF文档内容如下：
         self._reset_qa_buttons()
         self.status_label.setText("回答完成")
 
-        # 滚动到底部
+        # 强制滚动到底部（完成渲染后）
         self.chat_display.ensureCursorVisible()
+
+        # 额外的滚动确保
+        scrollbar = self.chat_display.verticalScrollBar()
+        scrollbar.setValue(scrollbar.maximum())
+
+        # 移动光标到末尾并确保可见
+        cursor = self.chat_display.textCursor()
+        cursor.movePosition(cursor.MoveOperation.End)
+        self.chat_display.setTextCursor(cursor)
+
+        # 再次确保滚动到底部（有时需要延迟）
+        from PyQt6.QtCore import QTimer
+
+        QTimer.singleShot(50, lambda: scrollbar.setValue(scrollbar.maximum()))
 
     def on_response_failed(self, error_message):
         """AI回答失败"""
