@@ -3,7 +3,7 @@
 </div>
 
 <div align="center">
-  <img src="https://img.shields.io/badge/版本-5.0.0-blue" alt="版本">
+  <img src="https://img.shields.io/badge/版本-5.1.0-blue" alt="版本">
   <a href="LICENSE"><img src="https://img.shields.io/badge/许可证-AGPL3.0-green" alt="许可证"></a>
   <h4>
     <a href="README.md">🇨🇳 中文</a>
@@ -26,13 +26,13 @@
 
 - windows：
 
-  - github：https://github.com/zstar1003/FreePDF/releases/download/v5.0.0/FreePDF_v5.0.0_Setup.exe
+  - github：https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_v5.1.0_Setup.exe
 
   - 百度网盘：https://pan.baidu.com/s/1Qh8Sb5XYpJWdDHXVr0vOoA?pwd=8888 提取码: 8888 
 
 - mac(arm64)：
 
-  - github：https://github.com/zstar1003/FreePDF/releases/download/v5.0.0/FreePDF_v5.0.0_arm64.dmg
+  - github：https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_v5.1.0_arm64.dmg
 
   - 百度网盘：https://pan.baidu.com/s/1Eqe1Q0_DqQ0u6_YQybD8AQ?pwd=8888 提取码: 8888  
 
