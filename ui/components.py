@@ -414,7 +414,7 @@ class TranslationConfigDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("引擎配置")
-        self.setFixedSize(1000, 600)  # 改为更宽但更矮的尺寸
+        self.setFixedSize(1000, 520)
         self.setModal(True)
 
         # 加载当前配置
