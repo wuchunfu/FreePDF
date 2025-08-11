@@ -171,13 +171,13 @@ The Q&A engine supports SiliconFlow (cloud), Ollama (local), and any other imple
 
 ## ❓ FAQ
 
-1. Does it support image-based PDFs, such as scanned documents?  
+1. Does it support image-based PDFs, such as scanned documents?   
    **Answer:** No. The tool relies on `pdf2zh` to detect text blocks. Replacing text in image-based PDFs will cause overlapping content.
 
-2. When using a large language model (LLM) for translation, some content remains untranslated? 
+2. When using a large language model (LLM) for translation, some content remains untranslated?   
    **Answer:** Small-parameter LLMs have weak instruction-following ability. If the model ignores translation instructions, this issue can occur. When translating locally with an LLM, please ensure the model has a sufficient parameter size—7 B or larger is recommended.
 
-3. Why is the content inside tables not translated?  
+3. Why is the content inside tables not translated?    
    **Answer:** Currently, pdf2zh does not support table translation. If you need this feature, check the `dev` branch of this repository, where pdf2zh_next can handle tables. However, due to its slower speed, it has not been merged into the main branch yet.
 
 If you have other questions, feel free to submit an issue.
