@@ -32,7 +32,7 @@
 
 - mac(arm64)：
 
-  - github：[https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_v5.1.0_arm64.dmg](https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_mac.zip)
+  - github：[https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_mac.zip](https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_mac.zip)
 
   - 百度网盘：https://pan.baidu.com/s/1lBwswfTYyloBsIzhKigHsA?pwd=8888 提取码: 8888
 
@@ -214,5 +214,6 @@ python main.py
 - [PyQt6](https://www.riverbankcomputing.com/software/pyqt)
 
 - [pdf.js](https://github.com/mozilla/pdf.js)
+
 
 
