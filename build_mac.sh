@@ -16,10 +16,10 @@ SPEC_FILE="build_mac.spec"
 
 # 代码签名配置 (可选)
 # 如果需要签名和公证,请设置以下变量:
-# SIGN_IDENTITY="Developer ID Application: Your Name (TEAM_ID)"
-# APPLE_ID="your-apple-id@email.com"
-# TEAM_ID="YOUR_TEAM_ID"
-# APP_PASSWORD="app-specific-password"
+SIGN_IDENTITY="Developer ID Application: Xingyu Zhang (8VG8TNH2F2)"
+APPLE_ID="zstar1003@163.com"
+TEAM_ID="8VG8TNH2F2"
+APP_PASSWORD="smct-dxuv-rdid-vjfb"
 
 SIGN_IDENTITY="${SIGN_IDENTITY:-}"
 ENABLE_SIGNING=false
@@ -66,6 +66,38 @@ if [ ! -d "dist/${APP_NAME}.app" ]; then
     exit 1
 fi
 echo "✓ 应用构建完成"
+echo ""
+
+# 步骤3.5: 修复cv2重复问题
+echo "[3.5/6] 修复cv2递归导入问题..."
+if [ -d "dist/${APP_NAME}.app/Contents/Resources/cv2" ] && [ -d "dist/${APP_NAME}.app/Contents/Frameworks/cv2" ]; then
+    echo "  检测到cv2重复目录,正在修复..."
+
+    # 先将Frameworks/cv2中的符号链接转换为实际文件
+    cd "dist/${APP_NAME}.app/Contents/Frameworks/cv2"
+    for link in $(find . -type l); do
+        if [ -e "$link" ]; then
+            target=$(readlink "$link")
+            # 如果链接指向Resources/cv2,则复制实际文件
+            if [[ "$target" == *"Resources/cv2"* ]]; then
+                rm "$link"
+                # 构建源文件的绝对路径
+                source_file="../../Resources/cv2/$(basename $link)"
+                if [ -e "$source_file" ]; then
+                    cp -R "$source_file" "$link"
+                    echo "    转换: $link"
+                fi
+            fi
+        fi
+    done
+    cd - > /dev/null
+
+    # 现在安全地删除Resources/cv2
+    rm -rf "dist/${APP_NAME}.app/Contents/Resources/cv2"
+    echo "✓ cv2重复问题已修复"
+else
+    echo "✓ 无需修复"
+fi
 echo ""
 
 # 步骤4: 代码签名 (如果配置)

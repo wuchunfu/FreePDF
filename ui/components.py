@@ -452,6 +452,21 @@ class TranslationConfigDialog(QDialog):
                 border-radius: 3px;
                 background-color: white;
                 min-height: 14px;
+                min-width: 150px;
+            }
+            QComboBox::drop-down {
+                border: 0px;
+                width: 20px;
+            }
+            QComboBox::down-arrow {
+                width: 12px;
+                height: 12px;
+            }
+            QComboBox QAbstractItemView {
+                min-width: 200px;
+                border: 1px solid #ccc;
+                selection-background-color: #007acc;
+                selection-color: white;
             }
             QComboBox:focus, QLineEdit:focus {
                 border-color: #007acc;
@@ -501,6 +516,8 @@ class TranslationConfigDialog(QDialog):
         # 翻译引擎选择
         self.service_combo = QComboBox()
         self.service_combo.addItems(["bing", "google", "silicon", "ollama"])
+        self.service_combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
+        self.service_combo.setMinimumWidth(200)
         self.service_combo.currentTextChanged.connect(self.on_service_changed)
         basic_layout.addRow("翻译引擎:", self.service_combo)
 
@@ -523,11 +540,15 @@ class TranslationConfigDialog(QDialog):
         # 原语言
         self.lang_in_combo = QComboBox()
         self.lang_in_combo.addItems(["英文", "中文", "日语", "韩语", "繁体中文"])
+        self.lang_in_combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
+        self.lang_in_combo.setMinimumWidth(200)
         basic_layout.addRow("原语言:", self.lang_in_combo)
 
         # 目标语言
         self.lang_out_combo = QComboBox()
         self.lang_out_combo.addItems(["中文", "英文", "日语", "韩语", "繁体中文"])
+        self.lang_out_combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
+        self.lang_out_combo.setMinimumWidth(200)
         basic_layout.addRow("目标语言:", self.lang_out_combo)
 
         left_layout.addWidget(basic_group)
@@ -561,6 +582,8 @@ class TranslationConfigDialog(QDialog):
         # 问答引擎选择
         self.qa_service_combo = QComboBox()
         self.qa_service_combo.addItems(["关闭", "silicon", "ollama", "自定义"])
+        self.qa_service_combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
+        self.qa_service_combo.setMinimumWidth(200)
         self.qa_service_combo.currentTextChanged.connect(self.on_qa_service_changed)
         qa_layout.addRow("问答引擎:", self.qa_service_combo)
 
