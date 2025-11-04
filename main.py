@@ -22,9 +22,14 @@ _PDF2ZH_LOADED = False
 def get_app_dir():
     """获取应用程序目录，兼容开发环境和打包环境"""
     if getattr(sys, "frozen", False):
-        # 打包后的exe环境
-        app_dir = os.path.dirname(sys.executable)
-        print(f"运行环境: 打包EXE, 应用目录: {app_dir}")
+        # PyInstaller打包后的环境
+        if hasattr(sys, "_MEIPASS"):
+            # 使用_MEIPASS作为基础目录
+            app_dir = sys._MEIPASS
+            print(f"运行环境: PyInstaller打包, 应用目录: {app_dir}")
+        else:
+            app_dir = os.path.dirname(sys.executable)
+            print(f"运行环境: 打包环境, 应用目录: {app_dir}")
         return app_dir
     else:
         # 开发环境
@@ -34,9 +39,15 @@ def get_app_dir():
 
 
 def get_resource_path(relative_path):
-    """获取资源文件路径，兼容开发环境和打包环境"""
-    app_dir = get_app_dir()
-    resource_path = os.path.join(app_dir, relative_path)
+    """获取资源��件路径，兼容开发环境和打包环境"""
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        # PyInstaller打包环境,资源在_MEIPASS目录下
+        base_path = sys._MEIPASS
+    else:
+        # 开发环境或其他打包环境
+        base_path = os.path.dirname(os.path.abspath(__file__))
+
+    resource_path = os.path.join(base_path, relative_path)
     print(f"资源文件: {relative_path} -> {resource_path}")
     return resource_path
 
@@ -59,21 +70,21 @@ def _load_pdf2zh_modules():
         print("步骤1: 导入标准库...")
         import json
 
-        # 在exe环境下设置onnxruntime的DLL路径
+        # 在打包环境下设置onnxruntime的库路径
         if hasattr(sys, "_MEIPASS"):
-            print("步骤1.5: 设置exe环境下的DLL路径...")
-            exe_dir = sys._MEIPASS
-            internal_dir = os.path.join(exe_dir, "_internal")
+            print("步骤1.5: 设置打包环境下的库路径...")
+            base_dir = sys._MEIPASS
 
-            # 添加onnxruntime DLL路径
+            # 添加onnxruntime库路径
             onnx_paths = [
-                os.path.join(internal_dir, "onnxruntime", "capi"),
-                os.path.join(internal_dir, "onnxruntime"),
-                internal_dir,
+                os.path.join(base_dir, "onnxruntime", "capi"),
+                os.path.join(base_dir, "onnxruntime"),
+                base_dir,
             ]
 
             for path in onnx_paths:
                 if os.path.exists(path):
+                    # Windows: 使用add_dll_directory
                     if hasattr(os, "add_dll_directory"):
                         try:
                             os.add_dll_directory(path)
@@ -81,7 +92,15 @@ def _load_pdf2zh_modules():
                         except Exception as e:
                             print(f"  - 添加DLL路径失败: {e}")
 
-                    # 更新PATH环境变量
+                    # macOS/Linux: 更新环境变量
+                    # macOS使用DYLD_LIBRARY_PATH (虽然受SIP限制,但在app内部仍有效)
+                    if sys.platform == "darwin":
+                        dyld_path = os.environ.get("DYLD_LIBRARY_PATH", "")
+                        if path not in dyld_path:
+                            os.environ["DYLD_LIBRARY_PATH"] = path + os.pathsep + dyld_path
+                            print(f"  - 更新DYLD_LIBRARY_PATH: {path}")
+
+                    # 通用: 更新PATH环境变量
                     current_path = os.environ.get("PATH", "")
                     if path not in current_path:
                         os.environ["PATH"] = path + os.pathsep + current_path
@@ -130,8 +149,10 @@ def _load_pdf2zh_modules():
             raise
 
         print("步骤3: 读取配置文件...")
-        # 获取配置文件路径
-        config_path = get_resource_path("pdf2zh_config.json")
+        # 获取配置文件路径(使用统一的路径管理)
+        from utils.config_path import get_config_file_path
+        config_path = get_config_file_path()
+        print(f"配置文件路径: {config_path}")
 
         if not os.path.exists(config_path):
             # 尝试其他可能的位置

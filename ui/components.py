@@ -821,6 +821,7 @@ class TranslationConfigDialog(QDialog):
         """加载当前配置"""
         import json
         import os
+        from utils.config_path import get_config_file_path
 
         # 默认配置
         self.current_config = {
@@ -834,7 +835,8 @@ class TranslationConfigDialog(QDialog):
         self.current_qa_config = {"service": "关闭", "envs": {}}
 
         # 从统一配置文件加载
-        config_file = "pdf2zh_config.json"
+        config_file = get_config_file_path()
+        print(f"加载配置文件: {config_file}")
         if os.path.exists(config_file):
             try:
                 with open(config_file, "r", encoding="utf-8") as f:
@@ -843,6 +845,7 @@ class TranslationConfigDialog(QDialog):
                         self.current_config.update(full_config["translation"])
                     if "qa_engine" in full_config:
                         self.current_qa_config.update(full_config["qa_engine"])
+                print(f"配置加载成功")
             except Exception as e:
                 print(f"读取配置失败: {e}")
 
@@ -850,6 +853,7 @@ class TranslationConfigDialog(QDialog):
         """保存配置"""
         import json
         import os
+        from utils.config_path import get_config_file_path
 
         # 收集配置，将显示名称转换为代码
         config = {
@@ -880,7 +884,9 @@ class TranslationConfigDialog(QDialog):
                 config["envs"]["CUSTOM_MODEL"] = self.custom_model.text().strip()
 
         # 读取现有的完整配置文件
-        config_file = "pdf2zh_config.json"
+        config_file = get_config_file_path()
+        print(f"保存配置到: {config_file}")
+
         full_config = {}
         if os.path.exists(config_file):
             try:
@@ -927,9 +933,20 @@ class TranslationConfigDialog(QDialog):
         # 更新问答引擎配置部分
         full_config["qa_engine"] = qa_config
 
+        # 确保配置目录存在
+        config_dir = os.path.dirname(config_file)
+        os.makedirs(config_dir, exist_ok=True)
+
         # 保存到统一配置文件
-        with open(config_file, "w", encoding="utf-8") as f:
-            json.dump(full_config, f, indent=4, ensure_ascii=False)
+        try:
+            with open(config_file, "w", encoding="utf-8") as f:
+                json.dump(full_config, f, indent=4, ensure_ascii=False)
+            print(f"配置保存成功")
+        except Exception as e:
+            print(f"保存配置失败: {e}")
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.warning(self, "保存失败", f"无法保存配置文件:\n{e}")
+            return
 
         self.current_config = config
         self.current_qa_config = qa_config
