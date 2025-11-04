@@ -123,16 +123,30 @@ class PdfDualViewWidget(QWidget):
 
     def load_pdf(self, pdf_path):
         """Loads a PDF file into both views."""
-        viewer_path = os.path.abspath('pdfjs/web/viewer.html')
+        # 获取viewer.html的正确路径(兼容开发和打包环境)
+        import sys
+        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+            # 打包环境
+            viewer_path = os.path.join(sys._MEIPASS, 'pdfjs', 'web', 'viewer.html')
+        else:
+            # 开发环境
+            viewer_path = os.path.abspath('pdfjs/web/viewer.html')
+
         viewer_url = QUrl.fromLocalFile(viewer_path)
-        
-        # QWebEngineView requires a file URL in a specific format
-        pdf_url = QUrl.fromLocalFile(os.path.abspath(pdf_path)).toString()
-        
-        full_url = QUrl(f"{viewer_url.toString()}?file={pdf_url}")
-        
-        self.view1.load(full_url)
-        self.view2.load(full_url)
+
+        # 确保PDF路径正确编码,特别是中文路径
+        pdf_file_path = os.path.abspath(pdf_path)
+        pdf_url = QUrl.fromLocalFile(pdf_file_path)
+
+        # 使用QUrl进行正确的URL编码
+        from PyQt6.QtCore import QUrlQuery
+        query = QUrlQuery()
+        query.addQueryItem("file", pdf_url.toString())
+
+        viewer_url.setQuery(query)
+
+        self.view1.load(viewer_url)
+        self.view2.load(viewer_url)
 
     def create_web_view(self, name):
         """Creates and configures a QWebEngineView instance."""

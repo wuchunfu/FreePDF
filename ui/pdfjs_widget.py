@@ -137,16 +137,33 @@ class PdfJsWidget(QWidget):
              self.view.setUrl(QUrl(pdf_path))
              return
 
-        viewer_path = os.path.abspath('pdfjs/web/viewer.html')
-        viewer_url = QUrl.fromLocalFile(viewer_path)
-        pdf_url = QUrl.fromLocalFile(os.path.abspath(pdf_path)).toString()
-
-        base_url = f"{viewer_url.toString()}?file={pdf_url}"
-        if self._locale:
-            full_url = QUrl(f"{base_url}#locale={self._locale}")
+        # 获取viewer.html的正确路径(兼容开发和打包环境)
+        import sys
+        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+            # 打包环境
+            viewer_path = os.path.join(sys._MEIPASS, 'pdfjs', 'web', 'viewer.html')
         else:
-            full_url = QUrl(base_url)
-        self.view.load(full_url)
+            # 开发环境
+            viewer_path = os.path.abspath('pdfjs/web/viewer.html')
+
+        viewer_url = QUrl.fromLocalFile(viewer_path)
+
+        # 确保PDF路径正确编码,特别是中文路径
+        pdf_file_path = os.path.abspath(pdf_path)
+        pdf_url = QUrl.fromLocalFile(pdf_file_path)
+
+        # 使用QUrl进行正确的URL编码
+        from PyQt6.QtCore import QUrlQuery
+        query = QUrlQuery()
+        query.addQueryItem("file", pdf_url.toString())
+
+        viewer_url.setQuery(query)
+
+        if self._locale:
+            # 添加locale到fragment
+            viewer_url.setFragment(f"locale={self._locale}")
+
+        self.view.load(viewer_url)
 
     def on_load_finished(self, ok):
         """Injects JS after the page has loaded."""
