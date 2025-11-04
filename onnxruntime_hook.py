@@ -9,6 +9,19 @@ import os
 import sys
 from pathlib import Path
 
+# ==== 首先修复cv2递归导入问题 ====
+# cv2可能在Resources/cv2,这会导致递归导入
+if hasattr(sys, '_MEIPASS'):
+    paths_to_remove = []
+    for path in list(sys.path):  # 使用list()创建副本以避免在迭代时修改
+        if path.endswith('/cv2') or '/Resources/cv2' in path or path.endswith('\\cv2'):
+            paths_to_remove.append(path)
+
+    for path in paths_to_remove:
+        if path in sys.path:
+            sys.path.remove(path)
+            print(f"Hook: 移除cv2路径 {path}")
+
 
 def setup_onnxruntime():
     """设置ONNXRuntime环境"""
@@ -17,36 +30,46 @@ def setup_onnxruntime():
         if getattr(sys, 'frozen', False):
             # 在打包环境中
             bundle_dir = Path(sys._MEIPASS)
-            
+
             # 添加ONNXRuntime库路径
             onnx_lib_path = bundle_dir / "onnxruntime" / "capi"
             if onnx_lib_path.exists():
+                # macOS使用DYLD_LIBRARY_PATH
+                if sys.platform == 'darwin':
+                    dyld_path = os.environ.get('DYLD_LIBRARY_PATH', '')
+                    if str(onnx_lib_path) not in dyld_path:
+                        os.environ['DYLD_LIBRARY_PATH'] = str(onnx_lib_path) + os.pathsep + dyld_path
+
+                # Windows/Linux使用PATH
                 os.environ['PATH'] = str(onnx_lib_path) + os.pathsep + os.environ.get('PATH', '')
                 print(f"ONNXRuntime库路径已添加: {onnx_lib_path}")
-            
+
             # 设置ONNXRuntime提供者路径
             providers_path = bundle_dir / "onnxruntime" / "capi" / "onnxruntime_providers_shared.dll"
             if providers_path.exists():
                 os.environ['ONNXRUNTIME_PROVIDERS_PATH'] = str(providers_path.parent)
                 print(f"ONNXRuntime提供者路径已设置: {providers_path.parent}")
-        
+
         # 尝试导入ONNXRuntime
         import onnxruntime as ort
-        
+
         # 检查可用的执行提供者
         available_providers = ort.get_available_providers()
         print(f"可用的ONNXRuntime提供者: {available_providers}")
-        
+
         # 优先使用CPU提供者以确保兼容性
         preferred_providers = ['CPUExecutionProvider']
         if 'CUDAExecutionProvider' in available_providers:
             preferred_providers.insert(0, 'CUDAExecutionProvider')
             print("检测到CUDA支持")
-        
+        if sys.platform == 'darwin' and 'CoreMLExecutionProvider' in available_providers:
+            preferred_providers.insert(0, 'CoreMLExecutionProvider')
+            print("检测到CoreML支持(Apple Silicon)")
+
         return True, preferred_providers
-        
+
     except ImportError as e:
-        print(f"ONNXRuntime导入失败: {e}")
+        print(f"ONNXRuntime导入��败: {e}")
         return False, []
     except Exception as e:
         print(f"ONNXRuntime设置出错: {e}")
@@ -56,10 +79,10 @@ def create_session_with_fallback(model_path, providers=None):
     """创建ONNXRuntime会话，带有fallback机制"""
     try:
         import onnxruntime as ort
-        
+
         if providers is None:
             providers = ['CPUExecutionProvider']
-        
+
         # 尝试使用指定的提供者创建会话
         for provider in providers:
             try:
@@ -72,12 +95,12 @@ def create_session_with_fallback(model_path, providers=None):
             except Exception as e:
                 print(f"使用 {provider} 创建会话失败: {e}")
                 continue
-        
+
         # 如果所有指定提供者都失败，尝试使用默认设置
         session = ort.InferenceSession(model_path)
         print("使用默认设置创建ONNXRuntime会话")
         return session
-        
+
     except Exception as e:
         print(f"创建ONNXRuntime会话失败: {e}")
         raise
@@ -87,13 +110,13 @@ def get_model_info(session):
     try:
         inputs = session.get_inputs()
         outputs = session.get_outputs()
-        
+
         input_info = [(inp.name, inp.shape, inp.type) for inp in inputs]
         output_info = [(out.name, out.shape, out.type) for out in outputs]
-        
+
         print(f"模型输入: {input_info}")
         print(f"模型输出: {output_info}")
-        
+
         return input_info, output_info
     except Exception as e:
         print(f"获取模型信息失败: {e}")

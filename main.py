@@ -70,6 +70,22 @@ def _load_pdf2zh_modules():
         print("步骤1: 导入标准库...")
         import json
 
+        # 最早期修复cv2递归导入问题(必须在任何可能导入cv2的操作之前)
+        if hasattr(sys, '_MEIPASS'):
+            print("步骤1.1: 修复cv2递归导入问题...")
+            paths_to_remove = []
+            for path in list(sys.path):
+                if path.endswith('/cv2') or '/Resources/cv2' in path or path.endswith('\\cv2') or '/cv2' in path:
+                    paths_to_remove.append(path)
+
+            for path in paths_to_remove:
+                if path in sys.path:
+                    try:
+                        sys.path.remove(path)
+                        print(f"  - 移除cv2路径: {path}")
+                    except ValueError:
+                        pass
+
         # 在打包环境下设置onnxruntime的库路径
         if hasattr(sys, "_MEIPASS"):
             print("步骤1.5: 设置打包环境下的库路径...")
