@@ -4,9 +4,9 @@
 
 <div align="center">
   <img src="https://img.shields.io/badge/version-5.1.0-blue" alt="version">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL3.0-green" alt="license"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL3.0-green" alt="License"></a>
   <h4>
-    <a href="README.md">🇨🇳 中文</a>
+    <a href="README.md">🇨🇳 Chinese</a>
     <span> | </span>
     <a href="README_EN.md">🇬🇧 English</a>
   </h4>
@@ -14,37 +14,35 @@
 
 ## ⭐️ Introduction
 
-A free PDF reader that translates PDF documents from multiple languages into Chinese and integrates large language models to perform question-answering based on the document content.
+A free PDF document reader that supports converting PDF documents in various languages into Chinese, and supports access to large models for question and answer based on document content.
 
-## 🏗️ Demo
 
-[![FreePDF: Revolutionizing the way researchers read literature](https://i0.hdslb.com/bfs/new_dyn/ee3f2cef036de77d80fe4518ef350f32472442675.jpg@428w_322h_1c.avif)](https://www.bilibili.com/video/BV11EgkziEFg)
+## 🏗️ Effect demonstration
 
-## 📦 Installation
+[![FreePDF: Subverting the way researchers read literature](https://i0.hdslb.com/bfs/new_dyn/ee3f2cef036de77d80fe4518ef350f32472442675.jpg@428w_322h_1c.avif)](https://www.bilibili.com/video/BV11EgkziEFg)
 
-- windows：
 
-  - github：https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_v5.1.0_Setup.exe
+## 📦 How to use
 
-  - Baidu Netdisk：https://pan.baidu.com/s/1Q4wyrLXQDovLmeBP4aP4Zw?pwd=8888 (Extraction code: 8888)
+- windows:
+
+  - github: https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_v5.1.0_Setup.exe
+
+  - Baidu Netdisk: https://pan.baidu.com/s/1Q4wyrLXQDovLmeBP4aP4Zw?pwd=8888 Extraction code: 8888
 
 - mac(arm64)：
 
-  - github：https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_v5.1.0_arm64.dmg
+  - github: [https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_v5.1.0_macOS.dmg](https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_v5.1.0_macOS.dmg)
 
-  - Baidu Netdisk：https://pan.baidu.com/s/1b9-0hbJgLBa405aleTsm4Q?pwd=8888 (Extraction code: 8888)
+  - HomeBrew: run `brew install freepdf`
 
-After the translation completes, two files will be generated in the same directory:
+The translated PDF file will be generated in its corresponding directory `-mono.pdf` (translation file)
 
-- `*-dual.pdf`: bilingual view (original + Chinese)
-- `*-mono.pdf`: Chinese-only translation
+## 🔧 Source code startup
 
-## 🔧 Run from Source
-
-Create environment:
+Configuration environment:
 
 ```bash
-uv venv --python 3.10
 uv sync
 ```
 
@@ -54,11 +52,12 @@ Start the application:
 python main.py
 ```
 
-## 📥 Configuration
 
-### Configuration File Structure and Parameters
+## 📥 Configuration instructions
 
-Example config file (`pdf2zh_config.json`):
+### Configuration file structure and parameter description
+
+Configuration file (pdf2zh_config.json) example:
 
 ```json
 {
@@ -73,65 +72,63 @@ Example config file (`pdf2zh_config.json`):
     "default": "./fonts/GoNotoKurrent-Regular.ttf"
   },
   "translation": {
-    "service": "bing", // Engine: bing, google, silicon, ollama, custom
-    "lang_in": "en",   // Source language: en, zh, ja, ko, zh-TW
-    "lang_out": "zh",  // Target language: same as above
+    "service": "bing", // Translation engine, optional: bing, google, silicon, ollama, custom
+    "lang_in": "en", // Source language, optional: en, zh, ja, ko, zh-TW
+    "lang_out": "zh", // target language, same as above
     "envs": {
-      // bing/google: leave empty
-      // silicon example:
-      //   "SILICON_API_KEY": "your API Key",
-      //   "SILICON_MODEL": "Qwen/Qwen2.5-7B-Instruct"
+      // bing/google does not require configuration
+      //silicon example:
+      // "SILICON_API_KEY": "Your API Key",
+      // "SILICON_MODEL": "Qwen/Qwen2.5-7B-Instruct"
       // ollama example:
-      //   "OLLAMA_HOST": "http://127.0.0.1:11434",
-      //   "OLLAMA_MODEL": "deepseek-r1:1.5b"
-      // custom example:
-      //   "CUSTOM_HOST": "https://api.xxx.com",
-      //   "CUSTOM_KEY": "your key",
-      //   "CUSTOM_MODEL": "model name"
+      // "OLLAMA_HOST": "http://127.0.0.1:11434",
+      // "OLLAMA_MODEL": "deepseek-r1:1.5b"
+      // Custom example:
+      // "CUSTOM_HOST": "https://api.xxx.com",
+      // "CUSTOM_KEY": "Your Key",
+      // "CUSTOM_MODEL": "Model name"
     }
   },
   "qa_engine": {
-    "service": "off", // Q&A engine: off, silicon, ollama, custom
+    "service": "Close", // Question and answer engine, optional: close, silicon, ollama, custom
     "envs": {
-      // configure exactly as above, see examples below
+      //Configuration method is the same as above
     }
   },
   "qa_settings": {
-    "pages": "", // Page range for Q&A, e.g. "1-5,8,10-15", empty for all
-    "system_prompt": "You are a professional PDF document analysis assistant. The user has uploaded a PDF document. Please answer the user's questions based on the document content.\n\nPDF content:\n{pdf_content}\n\nNotes:\n1. Only answer based on the above PDF content\n2. If the question is unrelated, state so clearly\n3. Be accurate, detailed, and cite relevant pages\n4. Answer in Chinese\n5. Use plain text only, no markdown formatting (such as **, ##, *, - etc.), just use text to highlight key points."
+    "pages": "", // Limit the PDF page range for question and answer analysis, the format is such as "1-5,8,10-15", leave blank to indicate all pages
+    "system_prompt": "You are a professional PDF document analysis assistant. The user uploaded a PDF document and you need to answer the user's questions based on the document content.\n\nThe content of the PDF document is as follows:\n{pdf_content}\n\nPlease note:\n1. Please answer the question based only on the content of the above PDF document\n2. If the question has nothing to do with the document content, please explain clearly\n3. The answer must be accurate and detailed, and cite the relevant page information\n4. Answer in Chinese\n"
   },
-  "translation_enabled": true, // Enable translation
-  "NOTO_FONT_PATH": "./fonts/SourceHanSerifCN-Regular.ttf", // Global font path
-  "pages": "" // Global page range
+  "translation_enabled": true, // Whether to enable translation
+  "NOTO_FONT_PATH": "./fonts/SourceHanSerifCN-Regular.ttf", // Global font path (
+  "pages": "" // Global page scope
 }
 ```
 
-#### Field Explanations
+#### Field description
 - `models.doclayout_path`: DocLayout-YOLO ONNX model path.
-- `fonts`: Font paths for different languages.
-- `translation.service`: Translation engine, supports bing, google, silicon, ollama, custom.
-- `translation.lang_in`/`lang_out`: Source/target language, supports en, zh, ja, ko, zh-TW.
-- `translation.envs`: Engine-specific API parameters. The configuration method is exactly the same as for `qa_engine.envs` below. See the examples below.
-- `qa_engine.service`: Q&A engine, supports off, silicon, ollama, custom.
-- `qa_engine.envs`: Engine-specific API parameters. The configuration method is exactly the same as for `translation.envs` above. See the examples below.
-- `qa_settings.pages`: Page range for Q&A, e.g. "1-5,8,10-15".
-- `qa_settings.system_prompt`: System prompt for Q&A, `{pdf_content}` will be replaced with the actual document content.
-- `translation_enabled`: Enable translation (true/false).
-- `NOTO_FONT_PATH`: Global font path.
-- `pages`: Global page range.
+- `fonts`: PDF rendering font path for each language.
+- `translation.service`: translation engine, supports bing, google, silicon, ollama, and customization.
+- `translation.lang_in`/`lang_out`: source/target language, supports en (English), zh (Chinese), ja (Japanese), ko (Korean), zh-TW (Traditional Chinese).
+- `translation.envs`: API parameters of different translation engines. The configuration method is exactly the same as `qa_engine.envs` below. For details, see the typical configuration example below.
+- `qa_engine.service`: Question and answer engine, supports shutdown, silicon, ollama, and customization.
+- `qa_engine.envs`: API parameters of different question and answer engines. The configuration method is exactly the same as `translation.envs` above. For details, see the typical configuration example below.
+- `qa_settings.pages`: The range of PDF pages analyzed during Q&A, in a format such as "1-5,8,10-15".
+- `qa_settings.system_prompt`: Question and answer system prompt word, {pdf_content} placeholder represents the specific document content.
+- `translation_enabled`: Whether to enable translation (true/false).
+- `NOTO_FONT_PATH`: global font path.
+- `pages`: global page scope.
 
-> For both translation and Q&A, the `envs` field should be filled in exactly the same way, just use the parameters required by your selected engine. See the examples below.
-
-#### Typical Configuration Examples
-- **SiliconFlow translation/Q&A**:
+#### Typical configuration example
+- **Silicon Mobile Translation/Q&A**:
   ```json
   "service": "silicon",
   "envs": {
-    "SILICON_API_KEY": "your API Key",
+    "SILICON_API_KEY": "Your API Key",
     "SILICON_MODEL": "Qwen/Qwen2.5-7B-Instruct"
   }
   ```
-- **Ollama local LLM**:
+- **Ollama local large model**:
   ```json
   "service": "ollama",
   "envs": {
@@ -139,67 +136,80 @@ Example config file (`pdf2zh_config.json`):
     "OLLAMA_MODEL": "deepseek-r1:1.5b"
   }
   ```
-- **Custom OpenAI-compatible API**:
+- **Custom OpenAI Compatible API**:
   ```json
   "service": "custom",
   "envs": {
     "CUSTOM_HOST": "https://api.xxx.com",
-    "CUSTOM_KEY": "your key",
-    "CUSTOM_MODEL": "model name"
+    "CUSTOM_KEY": "Your Key",
+    "CUSTOM_MODEL": "Model name"
   }
   ```
 
-> It is recommended to edit the config file with Notepad/VSCode, and remember that JSON does not support comments. All comments above are for reference only.
+> Whether it is translation or Q&A, the envs field is filled in exactly the same way. You only need to fill in the corresponding parameters according to the selected engine.
+> It is recommended to use Notepad/VSCode to edit the configuration file. Note that the JSON format cannot have comments. All comments are for reference only.
 
-Four translation engines are supported and can be selected in “Engine Settings”.
+Four optional translation engines are supported:
 
-- Bing Translator (default)  
-  Choose `bing` as the translation engine; no additional parameters are required.
+- Bing Translate (default)
+  
+  Select the translation engine as bing, no additional parameters are required
 
-- Google Translate  
-  Choose `google`; no additional parameters are required.
+- Google Translate
+  
+  Select the translation engine as google, no additional parameters are required
 
-- SiliconFlow Translator  
-  Choose `silicon`; you need to configure your [SiliconFlow](https://cloud.siliconflow.cn/i/bjDoFhPf) API Key and the specific chat model.
+- Silicon Translator
+  
+  If the translation engine is selected as silicon, additional configuration of [Silicon Flow](https://cloud.siliconflow.cn/i/bjDoFhPf) API Key and specific chat model is required.
 
-- Ollama Translator  
-  Choose `ollama`; first deploy a local chat model via Ollama, then configure the Ollama address and the specific chat model.
+- Ollama translation
 
-Five languages are currently supported (Chinese, English, Japanese, Korean, Traditional Chinese) and can be translated interchangeably.
+  Select the translation engine as ollama, first deploy the local chat model through ollama, and configure the ollama address and specific chat model.
 
-The Q&A engine supports SiliconFlow (cloud), Ollama (local), and any other implementation compatible with the OpenAI API.
+Supports mutual translation between five languages: Chinese, English, Japanese, Korean, and Traditional Chinese.
+
+The question and answer engine supports silicon-based flow (online), ollama (local) and other custom methods that comply with the `OpenAi API`.
+
+
 
 ## ❓ FAQ
 
-1. Does it support image-based PDFs, such as scanned documents?   
-   **Answer:** No. The tool relies on `pdf2zh` to detect text blocks. Replacing text in image-based PDFs will cause overlapping content.
+1. Does it support image-based PDFs, such as scanned documents?    
+  **Answer:** Not supported. Essentially, `pdf2zh` is used to detect the content of text blocks and then translate and replace them. Picture types cannot be directly replaced, which will cause the content to overlap and overlap.
 
-2. When using a large language model (LLM) for translation, some content remains untranslated?   
-   **Answer:** Small-parameter LLMs have weak instruction-following ability. If the model ignores translation instructions, this issue can occur. When translating locally with an LLM, please ensure the model has a sufficient parameter size—7 B or larger is recommended.
+2. When using large model translation, some content is not translated?  
+  **Answer:** The large model with low number of parameters has poor ability to follow instructions. If it is translated, it may not be completely obedient, which will cause this phenomenon. Therefore, when using a large model for local translation, it is necessary to ensure that the large model itself has a certain parameter scale, and it is recommended to exceed 7B.
 
-3. Why is the content inside tables not translated?    
-   **Answer:** Currently, pdf2zh does not support table translation. If you need this feature, check the `dev` branch of this repository, where pdf2zh_next can handle tables. However, due to its slower speed, it has not been merged into the main branch yet.
+3. The content in the form is not translated?  
+  **Answer:** pdf2zh does not currently support table content translation. If you need to translate tables, you can check the `dev` branch of this warehouse and use `pdf2zh_next` for translation. However, due to the slow speed, it has not been merged into the main branch.
 
-If you have other questions, feel free to submit an issue.
+4. The engine configuration file in the software cannot be saved?  
+  **Answer:** Under the default scaling of some models, the saved configuration button cannot be displayed. You can modify the screen resolution or scaling ratio and try again. You can also refer to the instructions above and directly edit the configuration file `pdf2zh_config.json` in the software installation path.
 
-## 🛠️ Contributing
+If you have other questions, please submit an issue or directly contact my WeChat account zstar1003 to report the problem.
 
-1. Fork this repository  
-2. Clone your fork:  
-   `git clone git@github.com:<your-username>/FreePDF.git`  
-3. Create a local branch:  
-   `git checkout -b my-branch`  
-4. Commit with descriptive messages:  
-   `git commit -m "A clear and descriptive commit message"`  
-5. Push changes to GitHub:  
-   `git push origin my-branch`  
-6. Open a PR and wait for review
+## 🛠️ How to contribute
+
+1. Fork this GitHub repository
+2. Clone the fork locally:
+`git clone git@github.com:<your username>/FreePDF.git`
+3. Create a local branch:
+`git checkout -b my-branch`
+4. Submitted information must include sufficient description:
+`git commit -m 'The submission message must contain sufficient description'`
+5. Push changes to GitHub (including necessary commit information):
+`git push origin my-branch`
+6. Submit PR and wait for review
 
 ## 🚀 Acknowledgments
 
-This project is based on the following open-source projects:
+This project is developed based on the following open source projects:
 
 - [PDFMathTranslate](https://github.com/Byaidu/PDFMathTranslate)
+
 - [DocLayout-YOLO](https://github.com/opendatalab/DocLayout-YOLO)
+
 - [PyQt6](https://www.riverbankcomputing.com/software/pyqt)
-- [pdf.js](https://github.com/mozilla/pdf.js) 
+
+- [pdf.js](https://github.com/mozilla/pdf.js)

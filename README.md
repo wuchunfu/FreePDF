@@ -32,9 +32,9 @@
 
 - mac(arm64)：
 
-  - github：[https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_mac.zip](https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_mac.zip)
+  - github：[https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_v5.1.0_macOS.dmg](https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_v5.1.0_macOS.dmg)
 
-  - 百度网盘：https://pan.baidu.com/s/1lBwswfTYyloBsIzhKigHsA?pwd=8888 提取码: 8888
+  - HomeBrew：运行`brew install freepdf`
 
 翻译完的PDF文件，会在其对应目录下生成`-mono.pdf`(翻译文件)
 
@@ -43,7 +43,6 @@
 配置环境：
 
 ```bash
-uv venv --python 3.10
 uv sync
 ```
 
@@ -214,6 +213,3 @@ python main.py
 - [PyQt6](https://www.riverbankcomputing.com/software/pyqt)
 
 - [pdf.js](https://github.com/mozilla/pdf.js)
-
-
-
