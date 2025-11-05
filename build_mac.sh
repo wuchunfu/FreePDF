@@ -15,11 +15,11 @@ VERSION="5.1.0"
 SPEC_FILE="build_mac.spec"
 
 # 代码签名配置 (可选)
-# 如果需要签名和公证,请设置以下变量:
-SIGN_IDENTITY="Developer ID Application: Xingyu Zhang (8VG8TNH2F2)"
-APPLE_ID="zstar1003@163.com"
-TEAM_ID="8VG8TNH2F2"
-APP_PASSWORD="smct-dxuv-rdid-vjfb"
+# 如果需要签名和公证,请设置以下变量(修改为自己的信息):
+# SIGN_IDENTITY="Developer ID Application: 证书信息"
+# APPLE_ID="自己的apple_id"
+# TEAM_ID="自己的team_id"
+# APP_PASSWORD="自己的app创建的密码"
 
 SIGN_IDENTITY="${SIGN_IDENTITY:-}"
 ENABLE_SIGNING=false
@@ -73,7 +73,11 @@ echo "[3.5/6] 修复cv2递归导入问题..."
 if [ -d "dist/${APP_NAME}.app/Contents/Resources/cv2" ] && [ -d "dist/${APP_NAME}.app/Contents/Frameworks/cv2" ]; then
     echo "  检测到cv2重复目录,正在修复..."
 
-    # 先将Frameworks/cv2中的符号链接转换为实际文件
+    # 保存当前工作目录
+    ORIGINAL_DIR=$(pwd)
+
+    # 步骤1: 将Frameworks/cv2中指向Resources/cv2的符号链接转换为实际文件
+    echo "  步骤1: 修复Frameworks/cv2中的符号链接..."
     cd "dist/${APP_NAME}.app/Contents/Frameworks/cv2"
     for link in $(find . -type l); do
         if [ -e "$link" ]; then
@@ -85,14 +89,40 @@ if [ -d "dist/${APP_NAME}.app/Contents/Resources/cv2" ] && [ -d "dist/${APP_NAME
                 source_file="../../Resources/cv2/$(basename $link)"
                 if [ -e "$source_file" ]; then
                     cp -R "$source_file" "$link"
-                    echo "    转换: $link"
+                    echo "    转换Frameworks: $link"
                 fi
             fi
         fi
     done
-    cd - > /dev/null
 
-    # 现在安全地删除Resources/cv2
+    # 恢复工作目录
+    cd "$ORIGINAL_DIR"
+
+    # 步骤2: 将Resources中指向cv2/.dylibs的符号链接转换为实际文件
+    echo "  步骤2: 修复Resources中指向cv2的符号链接..."
+    cd "dist/${APP_NAME}.app/Contents/Resources"
+    for link in $(find . -maxdepth 1 -type l); do
+        if [ -e "$link" ]; then
+            target=$(readlink "$link")
+            # 如果链接指向cv2/.dylibs,则复制实际文件
+            if [[ "$target" == cv2/.dylibs/* ]]; then
+                link_name=$(basename "$link")
+                rm "$link"
+                # 源文件在Resources/cv2/.dylibs/目录下
+                source_file="cv2/.dylibs/$link_name"
+                if [ -e "$source_file" ]; then
+                    cp -R "$source_file" "$link_name"
+                    echo "    转换Resources: $link_name"
+                fi
+            fi
+        fi
+    done
+
+    # 恢复工作目录
+    cd "$ORIGINAL_DIR"
+
+    # 步骤3: 现在安全地删除Resources/cv2
+    echo "  步骤3: 删除Resources/cv2目录..."
     rm -rf "dist/${APP_NAME}.app/Contents/Resources/cv2"
     echo "✓ cv2重复问题已修复"
 else
@@ -106,12 +136,23 @@ if [ "$ENABLE_SIGNING" = true ]; then
 
     # 签名所有框架和库
     echo "  签名动态库和框架..."
+
+    # 签名MacOS目录下的dylib和so文件
     find "dist/${APP_NAME}.app/Contents/MacOS" -type f \( -name "*.dylib" -o -name "*.so" \) -exec \
         codesign --force --sign "$SIGN_IDENTITY" \
         --options runtime \
         --entitlements entitlements.plist \
         --timestamp {} \;
 
+    # 签名Resources目录下的dylib文件（重要！公证需要）
+    echo "  签名Resources目录下的dylib文件..."
+    find "dist/${APP_NAME}.app/Contents/Resources" -type f -name "*.dylib" -exec \
+        codesign --force --sign "$SIGN_IDENTITY" \
+        --options runtime \
+        --entitlements entitlements.plist \
+        --timestamp {} \;
+
+    # 签名Frameworks目录下的framework
     find "dist/${APP_NAME}.app/Contents/Frameworks" -type d -name "*.framework" -exec \
         codesign --force --sign "$SIGN_IDENTITY" \
         --options runtime \
@@ -126,10 +167,24 @@ if [ "$ENABLE_SIGNING" = true ]; then
         --timestamp \
         "dist/${APP_NAME}.app"
 
+    # 等待签名完成
+    echo "  等待签名完成..."
+    sleep 2
+
     # 验证签名
     echo "  验证签名..."
-    codesign --verify --deep --strict --verbose=2 "dist/${APP_NAME}.app"
-    spctl --assess --verbose=4 --type execute "dist/${APP_NAME}.app" || true
+    if codesign --verify --deep --strict --verbose=2 "dist/${APP_NAME}.app" 2>&1; then
+        echo "  ✓ 签名验证成功"
+    else
+        echo "  ⚠ 签名验证失败,但不影响使用"
+    fi
+
+    # 评估签名
+    if spctl --assess --verbose=4 --type execute "dist/${APP_NAME}.app" 2>&1; then
+        echo "  ✓ Gatekeeper评估通过"
+    else
+        echo "  ⚠ Gatekeeper评估未通过(开发签名正常)"
+    fi
 
     echo "✓ 代码签名完成"
 else

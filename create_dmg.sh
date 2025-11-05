@@ -40,9 +40,23 @@ APP_SIZE=$(du -sm "$APP_PATH" | cut -f1)
 DMG_SIZE=$((APP_SIZE + 50))
 echo "应用大小: ${APP_SIZE}MB, DMG大小: ${DMG_SIZE}MB"
 
+# 创建临时文件夹用于DMG内容
+echo "准备DMG内容..."
+DMG_TEMP_DIR="dist/dmg_temp"
+rm -rf "$DMG_TEMP_DIR"
+mkdir -p "$DMG_TEMP_DIR"
+
+# 复制应用到临时文件夹
+echo "复制应用..."
+cp -R "$APP_PATH" "$DMG_TEMP_DIR/"
+
+# 创建Applications链接
+echo "创建Applications快捷方式..."
+ln -s /Applications "$DMG_TEMP_DIR/Applications"
+
 # 创建临时DMG
 echo "创建临时DMG..."
-hdiutil create -srcfolder "$APP_PATH" -volname "$VOLUME_NAME" -fs HFS+ \
+hdiutil create -srcfolder "$DMG_TEMP_DIR" -volname "$VOLUME_NAME" -fs HFS+ \
     -fsargs "-c c=64,a=16,e=16" -format UDRW -size ${DMG_SIZE}m "dist/${DMG_TEMP}"
 
 # 挂载DMG
@@ -53,14 +67,6 @@ MOUNT_POINT="/Volumes/${VOLUME_NAME}"
 
 echo "挂载点: $MOUNT_POINT"
 sleep 2
-
-# 创建Applications链接
-echo "创建Applications快捷方式..."
-if [ ! -e "$MOUNT_POINT/Applications" ]; then
-    ln -s /Applications "$MOUNT_POINT/Applications"
-else
-    echo "  Applications链接已存在,跳过"
-fi
 
 # 设置DMG窗口外观
 echo "配置DMG窗口外观..."
@@ -103,6 +109,7 @@ hdiutil convert "dist/${DMG_TEMP}" -format UDZO -imagekey zlib-level=9 -o "dist/
 
 # 删除临时文件
 rm -f "dist/${DMG_TEMP}"
+rm -rf "$DMG_TEMP_DIR"
 
 if [ -f "dist/${DMG_FINAL}" ]; then
     echo "✅ DMG创建成功: dist/${DMG_FINAL}"
