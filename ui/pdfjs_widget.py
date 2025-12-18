@@ -112,6 +112,10 @@ class PdfJsWidget(QWidget):
         settings = self.view.settings()
         settings.setAttribute(QWebEngineSettings.WebAttribute.Accelerated2dCanvasEnabled, False)
         
+        # 3. 启用本地文件访问权限（解决打包后无法访问PDF文件的问题）
+        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
+        
         self.view.setAcceptDrops(False)  # Disable drop events on the view
         page = WebEnginePage(self.profile, self.view)
         self.view.setPage(page)
@@ -139,9 +143,25 @@ class PdfJsWidget(QWidget):
 
         # 获取viewer.html的正确路径(兼容开发和打包环境)
         import sys
-        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-            # 打包环境
-            viewer_path = os.path.join(sys._MEIPASS, 'pdfjs', 'web', 'viewer.html')
+        if getattr(sys, 'frozen', False):
+            # 打包环境 - 尝试多个可能的路径
+            base_path = os.path.dirname(sys.executable)
+            possible_paths = [
+                os.path.join(base_path, 'pdfjs', 'web', 'viewer.html'),
+                os.path.join(base_path, '_internal', 'pdfjs', 'web', 'viewer.html'),
+            ]
+            if hasattr(sys, '_MEIPASS'):
+                possible_paths.insert(0, os.path.join(sys._MEIPASS, 'pdfjs', 'web', 'viewer.html'))
+            
+            viewer_path = None
+            for path in possible_paths:
+                if os.path.exists(path):
+                    viewer_path = path
+                    break
+            
+            if viewer_path is None:
+                print(f"错误: 找不到viewer.html，尝试过的路径: {possible_paths}")
+                viewer_path = possible_paths[0]  # 使用第一个作为默认
         else:
             # 开发环境
             viewer_path = os.path.abspath('pdfjs/web/viewer.html')
@@ -150,20 +170,36 @@ class PdfJsWidget(QWidget):
 
         # 确保PDF路径正确编码,特别是中文路径
         pdf_file_path = os.path.abspath(pdf_path)
-        pdf_url = QUrl.fromLocalFile(pdf_file_path)
+        
+        # 调试信息
+        print(f"PDF路径: {pdf_file_path}")
+        print(f"PDF文件存在: {os.path.exists(pdf_file_path)}")
+        print(f"Viewer路径: {viewer_path}")
+        print(f"Viewer文件存在: {os.path.exists(viewer_path)}")
+        
+        # 使用urllib进行正确的路径编码
+        import urllib.parse
+        # 将路径转换为file:// URL格式
+        if os.name == 'nt':  # Windows
+            # Windows路径需要特殊处理
+            pdf_file_url = 'file:///' + pdf_file_path.replace('\\', '/')
+            # 对路径进行URL编码，但保留斜杠和冒号
+            pdf_file_url = urllib.parse.quote(pdf_file_url, safe='/:')
+        else:
+            pdf_file_url = QUrl.fromLocalFile(pdf_file_path).toString()
+        
+        print(f"PDF URL: {pdf_file_url}")
 
-        # 使用QUrl进行正确的URL编码
-        from PyQt6.QtCore import QUrlQuery
-        query = QUrlQuery()
-        query.addQueryItem("file", pdf_url.toString())
-
-        viewer_url.setQuery(query)
-
+        # 构建完整的viewer URL
+        viewer_url_str = viewer_url.toString()
+        full_url = f"{viewer_url_str}?file={pdf_file_url}"
+        
         if self._locale:
-            # 添加locale到fragment
-            viewer_url.setFragment(f"locale={self._locale}")
-
-        self.view.load(viewer_url)
+            full_url += f"#locale={self._locale}"
+        
+        print(f"完整URL: {full_url}")
+        
+        self.view.load(QUrl(full_url))
 
     def on_load_finished(self, ok):
         """Injects JS after the page has loaded."""

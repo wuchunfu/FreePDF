@@ -63,6 +63,12 @@ class MainWindow(QMainWindow):
         # Use an off-the-record (incognito) profile by creating a QWebEngineProfile
         # without a persistent storage name.
         self.web_profile = QWebEngineProfile(self)
+        
+        # 启用本地文件访问权限（解决打包后无法访问PDF文件的问题）
+        settings = self.web_profile.settings()
+        from PyQt6.QtWebEngineCore import QWebEngineSettings
+        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
 
         self.drag_overlay = DragDropOverlay(self)
         self.qa_dialog = QADialog(self)  # Keep for compatibility if needed
