@@ -414,7 +414,7 @@ class TranslationConfigDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("引擎配置")
-        self.setFixedSize(1000, 520)
+        self.setFixedSize(1000, 580)
         self.setModal(True)
 
         # 加载当前配置
@@ -515,7 +515,7 @@ class TranslationConfigDialog(QDialog):
 
         # 翻译引擎选择
         self.service_combo = QComboBox()
-        self.service_combo.addItems(["bing", "google", "silicon", "ollama"])
+        self.service_combo.addItems(["bing", "google", "silicon", "ollama", "自定义"])
         self.service_combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
         self.service_combo.setMinimumWidth(200)
         self.service_combo.currentTextChanged.connect(self.on_service_changed)
@@ -801,17 +801,30 @@ class TranslationConfigDialog(QDialog):
 
             self.env_layout.addRow("服务地址:", self.ollama_host)
             self.env_layout.addRow("模型:", self.ollama_model)
+        elif service == "openai":
+            # 创建OpenAI兼容接口配置控件
+            self.openai_base_url = QLineEdit()
+            self.openai_base_url.setPlaceholderText("例如: https://api.openai.com/v1")
+            self.openai_api_key = QLineEdit()
+            self.openai_api_key.setPlaceholderText("请输入API Key")
+            self.openai_model = QLineEdit()
+            self.openai_model.setPlaceholderText("例如: gpt-4o-mini")
+
+            self.env_layout.addRow("Base URL:", self.openai_base_url)
+            self.env_layout.addRow("API Key:", self.openai_api_key)
+            self.env_layout.addRow("模型:", self.openai_model)
         elif service == "自定义":
-            # 自定义翻译服务
-            self.custom_host = QLineEdit()
-            self.custom_host.setPlaceholderText("http://example.com/api")
-            self.custom_key = QLineEdit()
-            self.custom_key.setPlaceholderText("可选: API Key")
+            # 自定义翻译服务（OpenAI兼容接口）
+            self.custom_base_url = QLineEdit()
+            self.custom_base_url.setPlaceholderText("例如: https://api.openai.com/v1")
+            self.custom_api_key = QLineEdit()
+            self.custom_api_key.setPlaceholderText("请输入API Key")
             self.custom_model = QLineEdit()
-            self.custom_model.setPlaceholderText("可选: 模型")
+            self.custom_model.setPlaceholderText("例如: gpt-4o-mini")
 
+            self.env_layout.addRow("Base URL:", self.custom_base_url)
+            self.env_layout.addRow("API Key:", self.custom_api_key)
             self.env_layout.addRow("模型:", self.custom_model)
-
         else:
             # Google/Bing 不需要额外配置
             info_label = QLabel("该翻译引擎无需额外配置")
@@ -898,13 +911,20 @@ class TranslationConfigDialog(QDialog):
                 config["envs"]["OLLAMA_HOST"] = self.ollama_host.text().strip()
             if hasattr(self, "ollama_model") and self.ollama_model.text().strip():
                 config["envs"]["OLLAMA_MODEL"] = self.ollama_model.text().strip()
+        elif service == "openai":
+            if hasattr(self, "openai_base_url") and self.openai_base_url.text().strip():
+                config["envs"]["OPENAI_BASE_URL"] = self.openai_base_url.text().strip()
+            if hasattr(self, "openai_api_key") and self.openai_api_key.text().strip():
+                config["envs"]["OPENAI_API_KEY"] = self.openai_api_key.text().strip()
+            if hasattr(self, "openai_model") and self.openai_model.text().strip():
+                config["envs"]["OPENAI_MODEL"] = self.openai_model.text().strip()
         elif service == "自定义":
-            if hasattr(self, "custom_host") and self.custom_host.text().strip():
-                config["envs"]["CUSTOM_HOST"] = self.custom_host.text().strip()
-            if hasattr(self, "custom_key") and self.custom_key.text().strip():
-                config["envs"]["CUSTOM_KEY"] = self.custom_key.text().strip()
+            if hasattr(self, "custom_base_url") and self.custom_base_url.text().strip():
+                config["envs"]["OPENAI_BASE_URL"] = self.custom_base_url.text().strip()
+            if hasattr(self, "custom_api_key") and self.custom_api_key.text().strip():
+                config["envs"]["OPENAI_API_KEY"] = self.custom_api_key.text().strip()
             if hasattr(self, "custom_model") and self.custom_model.text().strip():
-                config["envs"]["CUSTOM_MODEL"] = self.custom_model.text().strip()
+                config["envs"]["OPENAI_MODEL"] = self.custom_model.text().strip()
 
         # 读取现有的完整配置文件
         config_file = get_config_file_path()
@@ -1004,12 +1024,18 @@ class TranslationConfigDialog(QDialog):
             self.ollama_host.setText(envs["OLLAMA_HOST"])
         if hasattr(self, "ollama_model") and "OLLAMA_MODEL" in envs:
             self.ollama_model.setText(envs["OLLAMA_MODEL"])
-        if hasattr(self, "custom_host") and "CUSTOM_HOST" in envs:
-            self.custom_host.setText(envs["CUSTOM_HOST"])
-        if hasattr(self, "custom_key") and "CUSTOM_KEY" in envs:
-            self.custom_key.setText(envs["CUSTOM_KEY"])
-        if hasattr(self, "custom_model") and "CUSTOM_MODEL" in envs:
-            self.custom_model.setText(envs["CUSTOM_MODEL"])
+        if hasattr(self, "openai_base_url") and "OPENAI_BASE_URL" in envs:
+            self.openai_base_url.setText(envs["OPENAI_BASE_URL"])
+        if hasattr(self, "openai_api_key") and "OPENAI_API_KEY" in envs:
+            self.openai_api_key.setText(envs["OPENAI_API_KEY"])
+        if hasattr(self, "openai_model") and "OPENAI_MODEL" in envs:
+            self.openai_model.setText(envs["OPENAI_MODEL"])
+        if hasattr(self, "custom_base_url") and "OPENAI_BASE_URL" in envs:
+            self.custom_base_url.setText(envs["OPENAI_BASE_URL"])
+        if hasattr(self, "custom_api_key") and "OPENAI_API_KEY" in envs:
+            self.custom_api_key.setText(envs["OPENAI_API_KEY"])
+        if hasattr(self, "custom_model") and "OPENAI_MODEL" in envs:
+            self.custom_model.setText(envs["OPENAI_MODEL"])
 
         # 设置问答引擎
         qa_service = self.current_qa_config.get("service", "关闭")
@@ -1084,13 +1110,35 @@ class TranslationConfigDialog(QDialog):
                 headers["Authorization"] = (
                     f"Bearer {self.silicon_api_key.text().strip()}"
                 )
+        elif service == "openai":
+            url = self.openai_base_url.text().strip() if hasattr(self, "openai_base_url") else ""
+            expect_model = (
+                self.openai_model.text().strip()
+                if hasattr(self, "openai_model")
+                else None
+            )
+            if hasattr(self, "openai_api_key") and self.openai_api_key.text().strip():
+                headers["Authorization"] = (
+                    f"Bearer {self.openai_api_key.text().strip()}"
+                )
+        elif service == "自定义":
+            url = self.custom_base_url.text().strip() if hasattr(self, "custom_base_url") else ""
+            expect_model = (
+                self.custom_model.text().strip()
+                if hasattr(self, "custom_model")
+                else None
+            )
+            if hasattr(self, "custom_api_key") and self.custom_api_key.text().strip():
+                headers["Authorization"] = (
+                    f"Bearer {self.custom_api_key.text().strip()}"
+                )
         elif service == "bing":
             url = "https://www.bing.com/translator"
         elif service == "google":
             url = "https://translate.google.com/m"
 
         # 检查需要模型的服务是否填写了模型
-        if service in ("silicon", "ollama") and not expect_model:
+        if service in ("silicon", "ollama", "openai", "自定义") and not expect_model:
             QMessageBox.warning(
                 self, "测试连接", f"{service} 服务需要指定模型名称，请填写模型字段"
             )
@@ -1190,7 +1238,7 @@ class TranslationConfigDialog(QDialog):
                     )
                     ok = r.status_code == 200
                     msg = f"状态码: {r.status_code}" if not ok else ""
-                elif service in ("ollama", "自定义") and expect_model and not is_qa:
+                elif service == "ollama" and expect_model and not is_qa:
                     gen_url = url.rstrip("/") + "/v1/chat/completions"
                     payload = {
                         "model": expect_model,
@@ -1219,9 +1267,50 @@ class TranslationConfigDialog(QDialog):
                     )
                     ok = r.status_code == 200
                     msg = f"状态码: {r.status_code}" if not ok else ""
+                elif service == "openai" and expect_model:
+                    # OpenAI兼容接口: POST /v1/chat/completions
+                    openai_url = url.rstrip("/") + "/chat/completions"
+                    if "/v1" not in url:
+                        openai_url = url.rstrip("/") + "/v1/chat/completions"
+                    payload = {
+                        "model": expect_model,
+                        "messages": [{"role": "user", "content": "ping"}],
+                        "max_tokens": 1,
+                        "stream": False,
+                    }
+                    print(f"测试OpenAI API: {openai_url}")
+                    r = requests.post(
+                        openai_url, headers=headers, json=payload, timeout=10
+                    )
+                    ok = r.status_code == 200
+                    msg = f"状态码: {r.status_code}" if not ok else ""
+                elif service == "自定义" and expect_model and not is_qa:
+                    # 自定义翻译服务（OpenAI兼容接口）
+                    # 如果URL已包含chat/completions则直接使用，否则拼接
+                    custom_url = url.rstrip("/")
+                    if not custom_url.endswith("/chat/completions"):
+                        custom_url = custom_url + "/chat/completions"
+                    payload = {
+                        "model": expect_model,
+                        "messages": [{"role": "user", "content": "ping"}],
+                        "max_tokens": 1,
+                        "stream": False,
+                    }
+                    # 确保Content-Type header
+                    headers["Content-Type"] = "application/json"
+                    print(f"测试自定义翻译API: {custom_url}")
+                    print(f"Headers: {headers}")
+                    r = requests.post(
+                        custom_url, headers=headers, json=payload, timeout=10
+                    )
+                    ok = r.status_code == 200
+                    msg = f"状态码: {r.status_code}, 响应: {r.text[:200] if r.text else ''}" if not ok else ""
                 elif service == "自定义" and is_qa:
                     # 自定义QA服务
-                    custom_url = url.rstrip("/") + "/v1/chat/completions"
+                    # 如果URL已包含chat/completions则直接使用，否则拼接
+                    custom_url = url.rstrip("/")
+                    if not custom_url.endswith("/chat/completions"):
+                        custom_url = custom_url + "/chat/completions"
                     payload = {
                         "model": expect_model,
                         "messages": [{"role": "user", "content": "ping"}],

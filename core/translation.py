@@ -344,11 +344,16 @@ class TranslationThread(QThread):
                     font_path = os.path.abspath(font_path).replace("\\", "/")
                     print(f"目标语言: {self.lang_out}, 字体路径: {font_path}")
 
+                # 映射服务名称：将"自定义"映射为pdf2zh支持的"openai"
+                service_name = self.service
+                if service_name == "自定义":
+                    service_name = "openai"
+
                 params = {
                     "model": model,
                     "lang_in": self.lang_in,
                     "lang_out": self.lang_out,
-                    "service": self.service,
+                    "service": service_name,
                     "thread": self.threads,
                     "vfont": font_path,
                     "output": input_dir,  # 设置输出目录为输入文件所在目录
