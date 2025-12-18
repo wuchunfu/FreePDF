@@ -273,8 +273,24 @@ class BatchTranslationDialog(QDialog):
         files_layout = QVBoxLayout(files_group)
         files_layout.setContentsMargins(15, 20, 15, 15)
         
+        # 文件列表操作按钮
+        files_btn_layout = QHBoxLayout()
+        self.select_all_btn = QPushButton("全选")
+        self.select_all_btn.clicked.connect(self.select_all_files)
+        self.select_all_btn.setEnabled(False)
+        files_btn_layout.addWidget(self.select_all_btn)
+        
+        self.deselect_all_btn = QPushButton("取消全选")
+        self.deselect_all_btn.clicked.connect(self.deselect_all_files)
+        self.deselect_all_btn.setEnabled(False)
+        files_btn_layout.addWidget(self.deselect_all_btn)
+        
+        files_btn_layout.addStretch()
+        files_layout.addLayout(files_btn_layout)
+        
         self.files_list = QListWidget()
         self.files_list.setMaximumHeight(150)
+        self.files_list.itemChanged.connect(self.update_selection_info)
         files_layout.addWidget(self.files_list)
         
         self.files_info = QLabel("请选择文件夹以显示PDF文件列表")
@@ -376,35 +392,91 @@ class BatchTranslationDialog(QDialog):
             self.pdf_files = []
             for pdf_file in all_pdfs:
                 filename = os.path.basename(pdf_file)
-                # 检查是否包含dual或mono后缀
-                if not (filename.lower().endswith('.dual.pdf') or 
-                        filename.lower().endswith('.mono.pdf') or
-                        '.dual.' in filename.lower() or 
-                        '.mono.' in filename.lower()):
+                filename_lower = filename.lower()
+                # 检查是否包含dual或mono后缀（支持多种格式）
+                is_translated = (
+                    filename_lower.endswith('.dual.pdf') or 
+                    filename_lower.endswith('.mono.pdf') or
+                    filename_lower.endswith('-dual.pdf') or 
+                    filename_lower.endswith('-mono.pdf') or
+                    '.dual.' in filename_lower or 
+                    '.mono.' in filename_lower
+                )
+                if not is_translated:
                     self.pdf_files.append(pdf_file)
             
-            # 更新文件列表显示
+            # 更新文件列表显示（带复选框）
+            self.files_list.blockSignals(True)
             self.files_list.clear()
             for pdf_file in self.pdf_files:
                 item = QListWidgetItem(os.path.basename(pdf_file))
-                item.setToolTip(pdf_file)  # 显示完整路径作为提示
+                item.setToolTip(pdf_file)
+                item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+                item.setCheckState(Qt.CheckState.Checked)
+                item.setData(Qt.ItemDataRole.UserRole, pdf_file)
                 self.files_list.addItem(item)
+            self.files_list.blockSignals(False)
                 
-            # 更新信息标签
+            # 更新信息标签和按钮状态
             if self.pdf_files:
-                self.files_info.setText(f"找到 {len(self.pdf_files)} 个PDF文件（已排除dual和mono文件）")
+                self.files_info.setText(f"找到 {len(self.pdf_files)} 个PDF文件，已选择 {len(self.pdf_files)} 个")
                 self.start_btn.setEnabled(True)
+                self.select_all_btn.setEnabled(True)
+                self.deselect_all_btn.setEnabled(True)
             else:
                 self.files_info.setText("未找到可翻译的PDF文件")
                 self.start_btn.setEnabled(False)
+                self.select_all_btn.setEnabled(False)
+                self.deselect_all_btn.setEnabled(False)
                 
         except Exception as e:
             QMessageBox.critical(self, "错误", f"扫描文件时出错：\n{str(e)}")
+    
+    def select_all_files(self):
+        """全选所有文件"""
+        self.files_list.blockSignals(True)
+        for i in range(self.files_list.count()):
+            self.files_list.item(i).setCheckState(Qt.CheckState.Checked)
+        self.files_list.blockSignals(False)
+        self.update_selection_info()
+    
+    def deselect_all_files(self):
+        """取消全选"""
+        self.files_list.blockSignals(True)
+        for i in range(self.files_list.count()):
+            self.files_list.item(i).setCheckState(Qt.CheckState.Unchecked)
+        self.files_list.blockSignals(False)
+        self.update_selection_info()
+    
+    def update_selection_info(self):
+        """更新选择信息"""
+        selected_count = self.get_selected_files_count()
+        total_count = self.files_list.count()
+        self.files_info.setText(f"找到 {total_count} 个PDF文件，已选择 {selected_count} 个")
+        self.start_btn.setEnabled(selected_count > 0)
+    
+    def get_selected_files_count(self):
+        """获取选中文件数量"""
+        count = 0
+        for i in range(self.files_list.count()):
+            if self.files_list.item(i).checkState() == Qt.CheckState.Checked:
+                count += 1
+        return count
+    
+    def get_selected_files(self):
+        """获取选中的文件列表"""
+        selected = []
+        for i in range(self.files_list.count()):
+            item = self.files_list.item(i)
+            if item.checkState() == Qt.CheckState.Checked:
+                selected.append(item.data(Qt.ItemDataRole.UserRole))
+        return selected
             
     def start_translation(self):
         """开始批量翻译"""
-        if not self.pdf_files:
-            QMessageBox.warning(self, "警告", "没有找到可翻译的PDF文件！")
+        selected_files = self.get_selected_files()
+        if not selected_files:
+            QMessageBox.warning(self, "警告", "请至少选择一个PDF文件！")
             return
             
         # 获取语言设置
@@ -429,15 +501,17 @@ class BatchTranslationDialog(QDialog):
         self.start_btn.setVisible(False)
         self.stop_btn.setVisible(True)
         self.cancel_btn.setEnabled(False)
+        self.select_all_btn.setEnabled(False)
+        self.deselect_all_btn.setEnabled(False)
         
         # 设置进度条
-        self.progress_bar.setRange(0, len(self.pdf_files))
+        self.progress_bar.setRange(0, len(selected_files))
         self.progress_bar.setValue(0)
         # 记录已完成数
         self._completed_count = 0
         
-        # 创建并启动翻译线程
-        self.translation_thread = BatchTranslationThread(self.pdf_files, lang_in, lang_out, self)
+        # 创建并启动翻译线程（使用选中的文件）
+        self.translation_thread = BatchTranslationThread(selected_files, lang_in, lang_out, self)
         self.translation_thread.progress_updated.connect(self.update_progress)
         self.translation_thread.file_completed.connect(self.file_completed)
         self.translation_thread.batch_completed.connect(self.batch_completed)
@@ -492,7 +566,9 @@ class BatchTranslationDialog(QDialog):
         self.start_btn.setVisible(True)
         self.stop_btn.setVisible(False)
         self.cancel_btn.setEnabled(True)
-        self.start_btn.setEnabled(len(self.pdf_files) > 0)
+        self.start_btn.setEnabled(self.get_selected_files_count() > 0)
+        self.select_all_btn.setEnabled(self.files_list.count() > 0)
+        self.deselect_all_btn.setEnabled(self.files_list.count() > 0)
         
     def closeEvent(self, event):
         """关闭事件"""
