@@ -54,3 +54,4 @@ build
 dist
 .claude
 build_mac.sh
+*.exe

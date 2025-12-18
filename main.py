@@ -71,11 +71,16 @@ def _load_pdf2zh_modules():
         import json
 
         # 最早期修复cv2递归导入问题(必须在任何可能导入cv2的操作之前)
-        if hasattr(sys, '_MEIPASS'):
+        if hasattr(sys, "_MEIPASS"):
             print("步骤1.1: 修复cv2递归导入问题...")
             paths_to_remove = []
             for path in list(sys.path):
-                if path.endswith('/cv2') or '/Resources/cv2' in path or path.endswith('\\cv2') or '/cv2' in path:
+                if (
+                    path.endswith("/cv2")
+                    or "/Resources/cv2" in path
+                    or path.endswith("\\cv2")
+                    or "/cv2" in path
+                ):
                     paths_to_remove.append(path)
 
             for path in paths_to_remove:
@@ -113,7 +118,9 @@ def _load_pdf2zh_modules():
                     if sys.platform == "darwin":
                         dyld_path = os.environ.get("DYLD_LIBRARY_PATH", "")
                         if path not in dyld_path:
-                            os.environ["DYLD_LIBRARY_PATH"] = path + os.pathsep + dyld_path
+                            os.environ["DYLD_LIBRARY_PATH"] = (
+                                path + os.pathsep + dyld_path
+                            )
                             print(f"  - 更新DYLD_LIBRARY_PATH: {path}")
 
                     # 通用: 更新PATH环境变量
@@ -167,6 +174,7 @@ def _load_pdf2zh_modules():
         print("步骤3: 读取配置文件...")
         # 获取配置文件路径(使用统一的路径管理)
         from utils.config_path import get_config_file_path
+
         config_path = get_config_file_path()
         print(f"配置文件路径: {config_path}")
 
@@ -310,7 +318,7 @@ if __name__ == "__main__":
 
     # 设置应用程序属性
     app.setApplicationName("FreePDF")
-    app.setApplicationVersion("5.1.0")
+    app.setApplicationVersion("5.1.1")
     app.setOrganizationName("zstar")
 
     # 预热WebEngine，提前初始化核心组件
