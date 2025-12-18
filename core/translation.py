@@ -98,11 +98,12 @@ class TranslationThread(QThread):
         original_subset_fonts = pymupdf.Document.subset_fonts
         
         def safe_subset_fonts(self, *args, **kwargs):
-            """安全的subset_fonts包装，捕获'bad value'错误"""
+            """安全的subset_fonts包装，捕获字体处理相关错误"""
             try:
                 return original_subset_fonts(self, *args, **kwargs)
             except ValueError as e:
-                if "bad 'value'" in str(e):
+                error_str = str(e)
+                if "bad 'value'" in error_str or "invalid literal for int()" in error_str:
                     print(f"警告: 字体子集化时遇到错误，已跳过: {e}")
                     return None
                 raise e
@@ -337,15 +338,11 @@ class TranslationThread(QThread):
                 font_path = config["fonts"].get(
                     self.lang_out, config["fonts"].get("default")
                 )
-                # 处理字体路径，确保在Windows系统上不会产生正则表达式错误
+                # 处理字体路径，确保在Windows系统上路径正确
                 if font_path:
                     # 获取绝对路径并转换为正斜杠格式
                     font_path = os.path.abspath(font_path).replace("\\", "/")
-                    # 转义正则表达式特殊字符，防止被误解为正则表达式模式
-                    import re
-
-                    font_path = re.escape(font_path)
-                    print(f"目标语言: {self.lang_out}, 处理后的字体路径: {font_path}")
+                    print(f"目标语言: {self.lang_out}, 字体路径: {font_path}")
 
                 params = {
                     "model": model,
