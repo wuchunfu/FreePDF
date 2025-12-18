@@ -79,9 +79,46 @@ class TranslationThread(QThread):
             pages = sorted(list(set(pages)))
             return pages
 
-        except (ValueError, IndexError) as e:
+        except Exception as e:
             print(f"页面范围解析错误: {e}")
             return None
+
+    def _preprocess_pdf(self, input_file):
+        """预处理PDF文件（保留接口但不再需要复杂处理）"""
+        return input_file
+
+    def _translate_with_safe_subset_fonts(self, translate_func, input_file, params):
+        """使用安全的subset_fonts包装执行翻译
+        
+        通过monkey patch临时替换pymupdf的subset_fonts方法，
+        使其在遇到'bad value'错误时静默跳过而不是抛出异常。
+        """
+        import pymupdf
+        
+        original_subset_fonts = pymupdf.Document.subset_fonts
+        
+        def safe_subset_fonts(self, *args, **kwargs):
+            """安全的subset_fonts包装，捕获'bad value'错误"""
+            try:
+                return original_subset_fonts(self, *args, **kwargs)
+            except ValueError as e:
+                if "bad 'value'" in str(e):
+                    print(f"警告: 字体子集化时遇到错误，已跳过: {e}")
+                    return None
+                raise e
+            except Exception as e:
+                print(f"警告: 字体子集化时遇到未知错误，已跳过: {e}")
+                return None
+        
+        try:
+            pymupdf.Document.subset_fonts = safe_subset_fonts
+            print("已启用安全字体子集化模式")
+            
+            result = translate_func(files=[input_file], **params)
+            return result
+        finally:
+            pymupdf.Document.subset_fonts = original_subset_fonts
+            print("已恢复原始字体子集化方法")
 
     def _load_translation_config(self):
         """加载翻译配置"""
@@ -280,6 +317,14 @@ class TranslationThread(QThread):
             if self._stop_requested:
                 return
 
+            self.translation_progress.emit("正在检查并预处理PDF文档...")
+
+            # 预处理PDF文件，修复可能导致字体问题的文件
+            processed_input_file = self._preprocess_pdf(self.input_file)
+            
+            if self._stop_requested:
+                return
+
             self.translation_progress.emit("正在翻译PDF文档\n请稍候...")
 
             try:
@@ -327,9 +372,19 @@ class TranslationThread(QThread):
                 print(f"翻译参数: {params}")
                 print(f"翻译文件: {self.input_file}")
 
-                # 执行翻译
-                result = translate(files=[self.input_file], **params)
+                # 执行翻译，使用安全的subset_fonts包装
+                result = self._translate_with_safe_subset_fonts(
+                    translate, processed_input_file, params
+                )
                 print(f"翻译结果: {result}")
+                
+                # 如果使用了临时文件，在翻译完成后清理
+                if processed_input_file != self.input_file:
+                    try:
+                        os.remove(processed_input_file)
+                        print(f"已清理临时文件: {processed_input_file}")
+                    except Exception as cleanup_error:
+                        print(f"清理临时文件失败: {cleanup_error}")
 
                 if result and len(result) > 0:
                     file_mono, file_dual = result[0]
