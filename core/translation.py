@@ -13,6 +13,7 @@ from utils.constants import (
     DEFAULT_SERVICE,
     DEFAULT_THREADS,
 )
+from utils.config_path import get_config_file_path
 
 
 class TranslationThread(QThread):
@@ -125,7 +126,7 @@ class TranslationThread(QThread):
         """加载翻译配置"""
         import json
 
-        config_file = "pdf2zh_config.json"
+        config_file = get_config_file_path()
         default_config = {
             "service": DEFAULT_SERVICE,
             "lang_in": DEFAULT_LANG_IN,

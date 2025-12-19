@@ -8,6 +8,7 @@ import requests
 from PyQt6.QtCore import QObject, QThread, pyqtSignal
 
 from utils.text_processor import text_processor
+from utils.config_path import get_config_file_path
 
 
 class QAEngineThread(QThread):
@@ -26,12 +27,12 @@ class QAEngineThread(QThread):
         
     def _load_qa_config(self) -> Dict[str, Any]:
         """加载问答引擎配置"""
-        config_file = "pdf2zh_config.json"
+        config_file = get_config_file_path()
         default_config = {
             "service": "关闭",
             "envs": {}
         }
-        
+
         try:
             if os.path.exists(config_file):
                 with open(config_file, 'r', encoding='utf-8') as f:

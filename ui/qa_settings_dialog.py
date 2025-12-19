@@ -16,6 +16,8 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
+from utils.config_path import get_config_file_path
+
 
 class QASettingsDialog(QDialog):
     """QA配置对话框"""
@@ -161,7 +163,7 @@ class QASettingsDialog(QDialog):
         
     def _load_config(self):
         """加载配置文件"""
-        config_file = "pdf2zh_config.json"
+        config_file = get_config_file_path()
         try:
             if os.path.exists(config_file):
                 with open(config_file, 'r', encoding='utf-8') as f:
@@ -201,7 +203,7 @@ class QASettingsDialog(QDialog):
             self.config["qa_settings"]["system_prompt"] = system_prompt
             
             # 保存到文件
-            config_file = "pdf2zh_config.json"
+            config_file = get_config_file_path()
             with open(config_file, 'w', encoding='utf-8') as f:
                 json.dump(self.config, f, indent=4, ensure_ascii=False)
                 

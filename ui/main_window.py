@@ -39,6 +39,7 @@ from ui.components import (
     TranslationConfigDialog,
 )
 from ui.pdfjs_widget import PdfJsWidget  # Use the new widget
+from utils.config_path import get_config_file_path
 
 
 class MainWindow(QMainWindow):
@@ -660,7 +661,7 @@ class MainWindow(QMainWindow):
         import json
         import os
 
-        config_file = "pdf2zh_config.json"
+        config_file = get_config_file_path()
         if not os.path.exists(config_file):
             return False
 
@@ -1076,7 +1077,7 @@ class MainWindow(QMainWindow):
         import json
         import os
 
-        cfg_path = "pdf2zh_config.json"
+        cfg_path = get_config_file_path()
         if not os.path.exists(cfg_path):
             return True
         try:

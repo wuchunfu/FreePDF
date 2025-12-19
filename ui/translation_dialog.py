@@ -20,6 +20,8 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from utils.config_path import get_config_file_path
+
 
 class TranslationSettingsDialog(QDialog):
     """翻译设置对话框"""
@@ -280,7 +282,7 @@ class TranslationSettingsDialog(QDialog):
 
     def _load_config(self):
         """加载配置文件"""
-        config_file = "pdf2zh_config.json"
+        config_file = get_config_file_path()
         default_config = {
             "translation_enabled": True,
             "pages": "",
@@ -368,7 +370,7 @@ class TranslationSettingsDialog(QDialog):
                     return
 
             # 加载现有配置
-            config_file = "pdf2zh_config.json"
+            config_file = get_config_file_path()
             if os.path.exists(config_file):
                 with open(config_file, "r", encoding="utf-8") as f:
                     config = json.load(f)
