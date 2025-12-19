@@ -3,7 +3,7 @@
 </div>
 
 <div align="center">
-  <img src="https://img.shields.io/badge/版本-5.1.0-blue" alt="版本">
+  <img src="https://img.shields.io/badge/版本-5.1.1-blue" alt="版本">
   <a href="LICENSE"><img src="https://img.shields.io/badge/许可证-AGPL3.0-green" alt="许可证"></a>
   <h4>
     <a href="README.md">🇨🇳 中文</a>
@@ -26,13 +26,15 @@
 
 - windows：
 
-  - github：https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_v5.1.0_Setup.exe
+  - github：[https://github.com/zstar1003/FreePDF/releases/download/v5.1.1/FreePDF_v5.1.1.exe](https://github.com/zstar1003/FreePDF/releases/download/v5.1.1/FreePDF_v5.1.1.exe)
 
-  - 百度网盘：https://pan.baidu.com/s/1Q4wyrLXQDovLmeBP4aP4Zw?pwd=8888 提取码: 8888 
+  - 夸克网盘：[https://pan.quark.cn/s/560e7c524f73](https://pan.quark.cn/s/560e7c524f73)
 
 - mac(arm64)：
 
-  - github：[https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_v5.1.0_macOS.dmg](https://github.com/zstar1003/FreePDF/releases/download/v5.1.0/FreePDF_v5.1.0_macOS.dmg)
+  - github：[https://github.com/zstar1003/FreePDF/releases/download/v5.1.1/FreePDF_v5.1.1_macOS.dmg](https://github.com/zstar1003/FreePDF/releases/download/v5.1.1/FreePDF_v5.1.1_macOS.dmg)
+
+  - 夸克网盘：[https://pan.quark.cn/s/693a2170620b](https://pan.quark.cn/s/693a2170620b)
 
   - HomeBrew：运行`brew install freepdf`
 
@@ -149,7 +151,7 @@ python main.py
 > 无论是翻译还是问答，envs字段的填写方式完全一致，仅需根据所选引擎填写对应参数。
 > 配置文件建议用记事本/VSCode等编辑，注意JSON格式不能有注释，所有注释仅供参考。
 
-支持四种可选翻译引擎：
+可选翻译引擎：
 
 - 必应翻译(默认)  
   
@@ -167,11 +169,13 @@ python main.py
 
   选择翻译引擎为ollama，先通过ollama部署本地chat模型，并配置ollama地址和具体聊天模型。
 
+- 自定义翻译
+
+  其它符合`OpenAi API`的自定义模型引擎，如火山引擎。
+
 支持五种语言互相翻译：中文、英文、日文、韩文、繁体中文。
 
 问答引擎支持硅基流动(在线)、ollama(本地)和其它符合`OpenAi API`的自定义方式。
-
-
 
 ## ❓ 常见问题
 
@@ -183,9 +187,6 @@ python main.py
 
 3. 表格中的内容没有翻译？  
   **回答：** pdf2zh暂不支持表格内容翻译，如需翻译表格，可查看本仓库的`dev`分支，采用`pdf2zh_next`进行翻译，但由于速度较慢，未合并进主分支。
-
-4. 软件内的引擎配置文件无法保存？  
-  **回答：** 部分机型默认缩放下，无法显示保存的配置按钮，可修改屏幕分辨率或缩放比重试，也可参照上面的说明，直接编辑软件安装路径下的配置文件`pdf2zh_config.json`。
 
 如有其它问题，欢迎提交 issue 或 直接联系我的微信 zstar1003 反馈问题。
 
