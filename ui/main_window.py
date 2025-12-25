@@ -6,7 +6,7 @@ import webbrowser
 import requests
 
 # 应用版本信息
-__version__ = "5.1.1"
+__version__ = "5.1.2"
 
 from PyQt6.QtCore import Qt, QThread, QTimer, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QIcon
