@@ -13,6 +13,7 @@ from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QIcon
 from PyQt6.QtWebEngineCore import QWebEngineDownloadRequest, QWebEngineProfile
 from PyQt6.QtWidgets import (
     QApplication,
+    QComboBox,
     QDialog,
     QFileDialog,
     QFrame,
@@ -167,6 +168,37 @@ class MainWindow(QMainWindow):
         """)
         toolbar_layout.addWidget(self.sync_btn)
 
+        # 视图切换下拉框
+        self.view_mode_combo = QComboBox()
+        self.view_mode_combo.addItems(["双视图", "仅原文", "仅译文"])
+        self.view_mode_combo.setCurrentIndex(0)
+        self.view_mode_combo.setStyleSheet("""
+            QComboBox {
+                background-color: #005a9e;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 8px 16px;
+                font-weight: bold;
+            }
+            QComboBox:hover {
+                background-color: #003e6b;
+            }
+            QComboBox::drop-down {
+                width: 0px;
+                border: none;
+            }
+            QComboBox::down-arrow {
+                image: none;
+                width: 0px;
+                height: 0px;
+            }
+        """)
+        # 设置下拉菜单最小宽度
+        self.view_mode_combo.view().setMinimumWidth(100)
+        self.view_mode_combo.currentIndexChanged.connect(self.on_view_mode_changed)
+        toolbar_layout.addWidget(self.view_mode_combo)
+
         toolbar_layout.addStretch()
 
         # 批量翻译按钮
@@ -230,16 +262,16 @@ class MainWindow(QMainWindow):
         self.main_splitter = QSplitter(Qt.Orientation.Horizontal)
 
         # Left panel (Original PDF)
-        left_frame = QFrame()
-        left_frame.setFrameStyle(QFrame.Shape.NoFrame)
-        left_frame.setStyleSheet("""
+        self.left_frame = QFrame()
+        self.left_frame.setFrameStyle(QFrame.Shape.NoFrame)
+        self.left_frame.setStyleSheet("""
             QFrame {
                 background-color: #ffffff;
                 border: 1px solid #e0e0e0;
                 border-radius: 8px;
             }
         """)
-        left_layout = QVBoxLayout(left_frame)
+        left_layout = QVBoxLayout(self.left_frame)
         left_layout.setContentsMargins(
             1, 1, 1, 1
         )  # Add a small margin to prevent content from touching the border
@@ -266,16 +298,16 @@ class MainWindow(QMainWindow):
         left_layout.addWidget(self.left_pdf_widget)
 
         # Middle panel (Translated PDF)
-        middle_frame = QFrame()
-        middle_frame.setFrameStyle(QFrame.Shape.NoFrame)
-        middle_frame.setStyleSheet("""
+        self.middle_frame = QFrame()
+        self.middle_frame.setFrameStyle(QFrame.Shape.NoFrame)
+        self.middle_frame.setStyleSheet("""
             QFrame {
                 background-color: #ffffff;
                 border: 1px solid #e0e0e0;
                 border-radius: 8px;
             }
         """)
-        middle_layout = QVBoxLayout(middle_frame)
+        middle_layout = QVBoxLayout(self.middle_frame)
         middle_layout.setContentsMargins(1, 1, 1, 1)  # Add a small margin
         middle_layout.setSpacing(0)
         middle_title = QLabel("翻译文档")
@@ -338,8 +370,8 @@ class MainWindow(QMainWindow):
         )
         qa_panel_layout.addWidget(self.embedded_qa)
 
-        self.main_splitter.addWidget(left_frame)
-        self.main_splitter.addWidget(middle_frame)
+        self.main_splitter.addWidget(self.left_frame)
+        self.main_splitter.addWidget(self.middle_frame)
         self.main_splitter.addWidget(self.qa_panel)
         # Set initial sizes to be equal for the first two panels
         self.main_splitter.setSizes([375, 375, 250])
@@ -504,6 +536,34 @@ class MainWindow(QMainWindow):
         self.status_label.set_status(
             f"滚动同步已{'启用' if self._scroll_sync_enabled else '禁用'}", "info"
         )
+
+    def on_view_mode_changed(self, index):
+        """切换视图模式"""
+        # 保存当前的 splitter 尺寸
+        current_sizes = self.main_splitter.sizes()
+        qa_size = current_sizes[2] if len(current_sizes) > 2 else 250
+
+        if index == 0:  # 双视图
+            self.left_frame.show()
+            self.middle_frame.show()
+            # 恢复双视图布局
+            total_width = sum(current_sizes[:2]) if len(current_sizes) > 1 else 750
+            self.main_splitter.setSizes([total_width // 2, total_width // 2, qa_size])
+            self.status_label.set_status("视图模式: 双视图", "info")
+        elif index == 1:  # 仅原文
+            self.left_frame.show()
+            self.middle_frame.hide()
+            # 原文占据全部空间
+            total_width = sum(current_sizes[:2]) if len(current_sizes) > 1 else 750
+            self.main_splitter.setSizes([total_width, 0, qa_size])
+            self.status_label.set_status("视图模式: 仅原文", "info")
+        elif index == 2:  # 仅译文
+            self.left_frame.hide()
+            self.middle_frame.show()
+            # 译文占据全部空间
+            total_width = sum(current_sizes[:2]) if len(current_sizes) > 1 else 750
+            self.main_splitter.setSizes([0, total_width, qa_size])
+            self.status_label.set_status("视图模式: 仅译文", "info")
 
     def on_scroll_changed(self, view_name, top, left):
         if not self._scroll_sync_enabled or self._is_syncing:
