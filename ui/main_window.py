@@ -39,6 +39,7 @@ from ui.components import (
     TranslationConfigDialog,
 )
 from ui.pdfjs_widget import PdfJsWidget  # Use the new widget
+from ui.log_dialog import LogDialog
 from utils.config_path import get_config_file_path
 
 
@@ -389,7 +390,26 @@ class MainWindow(QMainWindow):
         self.progress_percent.setVisible(False)
         self.status_bar.addWidget(self.progress_percent)
 
-        # 页面信息已移除，使用更简洁的状态栏
+        # 详细日志按钮（放在状态栏右侧）
+        self.log_btn = QPushButton("详细日志")
+        self.log_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                padding: 4px 12px;
+                border-radius: 3px;
+                font-size: 12px;
+            }
+            QPushButton:hover {
+                background-color: #5a6268;
+            }
+        """)
+        self.log_btn.clicked.connect(self.show_log_dialog)
+        self.status_bar.addPermanentWidget(self.log_btn)
+
+        # 日志对话框实例（延迟创建）
+        self._log_dialog = None
 
     def setup_connections(self):
         """设置信号连接"""
@@ -408,6 +428,8 @@ class MainWindow(QMainWindow):
 
         # 翻译管理器信号
         self.translation_manager.current_thread = None
+        # 连接超时信号
+        self.translation_manager.translation_timeout.connect(self.on_translation_timeout)
 
         # 连接PDF组件的滚动信号
         # self.left_pdf_widget.scroll_changed.connect(self.on_left_scroll_changed) # This line was removed by the user's edit, so it's commented out.
@@ -1270,6 +1292,36 @@ class MainWindow(QMainWindow):
         if hasattr(self, "progress_percent"):
             self.progress_percent.setVisible(False)
         QMessageBox.critical(self, "翻译失败", f"翻译过程中出现错误:\n{error_message}")
+
+    @pyqtSlot(str)
+    def on_translation_timeout(self, message):
+        """翻译超时处理"""
+        # 显示警告对话框，让用户选择是否停止
+        reply = QMessageBox.warning(
+            self,
+            "翻译超时警告",
+            f"{message}\n\n是否停止当前翻译？\n点击【是】停止翻译，点击【否】继续等待。",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            # 停止翻译
+            self.translation_manager.stop_current_translation()
+            self.hide_loading()
+            if hasattr(self, "progress_bar"):
+                self.progress_bar.setVisible(False)
+            if hasattr(self, "progress_percent"):
+                self.progress_percent.setVisible(False)
+            self.status_label.set_status("翻译已停止", "warning")
+
+    def show_log_dialog(self):
+        """显示详细日志对话框"""
+        if self._log_dialog is None:
+            self._log_dialog = LogDialog(self)
+        self._log_dialog.show()
+        self._log_dialog.raise_()
+        self._log_dialog.activateWindow()
 
     # def on_text_selected(self, text): # REMOVED: Feature not available in new widget
     #     """文本选中"""
