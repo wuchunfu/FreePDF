@@ -6,7 +6,7 @@
 
 <div align="center">
 
-<img src="https://img.shields.io/badge/版-5.1.1-blue" alt="版">
+<img src="https://img.shields.io/badge/版-5.1.2-blue" alt="版">
 
 <a href="LICENSE"><img src="https://img.shields.io/badge/许可证-AGPL3.0-green" alt="许可证"></a>
 
@@ -34,13 +34,13 @@ A free PDF document reader that supports converting PDF documents in various lan
 
 - Windows:
 
-- GitHub: [https://github.com/zstar1003/FreePDF/releases/download/v5.1.1/FreePDF_v5.1.1.exe](https://github.com/zstar1003/FreePDF/releases/download/v5.1.1/FreePDF_v5.1.1.exe)
+- GitHub: [https://github.com/zstar1003/FreePDF/releases/download/v5.1.2/FreePDF_v5.1.2.exe](https://github.com/zstar1003/FreePDF/releases/download/v5.1.2/FreePDF_v5.1.2.exe)
 
 - Quark Drive: [https://pan.quark.cn/s/560e7c524f73](https://pan.quark.cn/s/560e7c524f73)
 
 - Mac (arm64):
 
-- GitHub: [https://github.com/zstar1003/FreePDF/releases/download/v5.1.1/FreePDF_v5.1.1_macOS.dmg](https://github.com/zstar1003/FreePDF/releases/download/v5.1.1/FreePDF_v5.1.1_macOS.dmg)
+- GitHub: [https://github.com/zstar1003/FreePDF/releases/download/v5.1.2/FreePDF_v5.1.2_macOS.dmg](https://github.com/zstar1003/FreePDF/releases/download/v5.1.2/FreePDF_v5.1.2_macOS.dmg)
 
 - Quark Drive: [https://pan.quark.cn/s/693a2170620b](https://pan.quark.cn/s/693a2170620b)
 
