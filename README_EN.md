@@ -36,13 +36,13 @@ A free PDF document reader that supports converting PDF documents in various lan
 
 - GitHub: [https://github.com/zstar1003/FreePDF/releases/download/v5.1.2/FreePDF_v5.1.2.exe](https://github.com/zstar1003/FreePDF/releases/download/v5.1.2/FreePDF_v5.1.2.exe)
 
-- Quark Drive: [https://pan.quark.cn/s/560e7c524f73](https://pan.quark.cn/s/560e7c524f73)
+- Quark Drive: [https://pan.quark.cn/s/ee59aa67b65d](https://pan.quark.cn/s/ee59aa67b65d)
 
 - Mac (arm64):
 
 - GitHub: [https://github.com/zstar1003/FreePDF/releases/download/v5.1.2/FreePDF_v5.1.2_macOS.dmg](https://github.com/zstar1003/FreePDF/releases/download/v5.1.2/FreePDF_v5.1.2_macOS.dmg)
 
-- Quark Drive: [https://pan.quark.cn/s/693a2170620b](https://pan.quark.cn/s/693a2170620b)
+- Quark Drive: [https://pan.quark.cn/s/e96b0c3efc3a](https://pan.quark.cn/s/e96b0c3efc3a)
 
 - HomeBrew: Run `brew install` freepdf
 

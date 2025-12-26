@@ -28,13 +28,13 @@
 
   - github：[https://github.com/zstar1003/FreePDF/releases/download/v5.1.2/FreePDF_v5.1.2.exe](https://github.com/zstar1003/FreePDF/releases/download/v5.1.2/FreePDF_v5.1.2.exe)
 
-  - 夸克网盘：[https://pan.quark.cn/s/560e7c524f73](https://pan.quark.cn/s/560e7c524f73)
+  - 夸克网盘：[https://pan.quark.cn/s/ee59aa67b65d](https://pan.quark.cn/s/ee59aa67b65d)
 
 - mac(arm64)：
 
   - github：[https://github.com/zstar1003/FreePDF/releases/download/v5.1.2/FreePDF_v5.1.2_macOS.dmg](https://github.com/zstar1003/FreePDF/releases/download/v5.1.2/FreePDF_v5.1.2_macOS.dmg)
 
-  - 夸克网盘：[https://pan.quark.cn/s/693a2170620b](https://pan.quark.cn/s/693a2170620b)
+  - 夸克网盘：[https://pan.quark.cn/s/e96b0c3efc3a](https://pan.quark.cn/s/e96b0c3efc3a)
 
   - HomeBrew：运行`brew install freepdf`
 
